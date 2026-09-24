@@ -31,7 +31,3 @@ Thumbs.db
 
 # Logs
 *.log
-
-# Documents
-*.docx
-docs/
