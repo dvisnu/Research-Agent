@@ -1,8 +1,40 @@
 [project]
 name = "research-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "Evidence-grounded research ideation and provenance-aware experiment planning for CS/ML."
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = []
+requires-python = "==3.13.*"
+dependencies = [
+    "adapters>=1.3.0",
+    "beautifulsoup4>=4.15.0",
+    "filelock>=4.0.12",
+    "httpx>=0.28.1",
+    "langgraph>=1.2.14",
+    "langgraph-checkpoint-sqlite>=3.1.1",
+    "lxml>=6.1.3",
+    "numpy>=2.5.3",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "pymupdf>=1.28.2",
+    "pysbd>=0.3.4",
+    "tenacity>=9.1.4",
+    "torch>=2.14.1",
+    "typer>=0.27.3",
+]
 
+[project.scripts]
+agent = "research_agent.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: calls the real literature APIs (run with -m live)"]
+addopts = "-m 'not live'"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

@@ -1,0 +1,215 @@
+# Dev topics: real CS/ML questions and ideas for checking each phase by hand.
+#
+# Keep these separate from the Phase 7 benchmark topics, so nothing is tuned on
+# the test set. `key_papers` are papers any reasonable search should find; Phase 1
+# is done when its corpus contains them.
+#
+# input = "question" (a research question) or "idea" (a rough idea to develop).
+
+[[topic]]
+id = "rag-knowledge-conflicts"
+input = "question"
+area = "NLP"
+text = "How can retrieval-augmented generation systems reduce hallucinations when the retrieved documents conflict with each other?"
+key_papers = [
+  { arxiv = "2005.11401", title = "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks" },
+  { arxiv = "2305.13300", title = "Adaptive Chameleon or Stubborn Sloth: Revealing the Behavior of Large Language Models in Knowledge Conflicts" },
+  { arxiv = "2403.08319", title = "Knowledge Conflicts for LLMs: A Survey" },
+  { arxiv = "2310.11511", title = "Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection" },
+]
+
+[[topic]]
+id = "scientific-rag-retrieval"
+input = "idea"
+area = "NLP / IR"
+text = "I want to improve retrieval for scientific RAG."
+key_papers = [
+  { arxiv = "2004.07180", title = "SPECTER: Document-level Representation Learning using Citation-informed Transformers" },
+  { arxiv = "2211.13308", title = "SciRepEval: A Multi-Format Benchmark for Scientific Document Representations" },
+  { arxiv = "2312.07559", title = "PaperQA: Retrieval-Augmented Generative Agent for Scientific Research" },
+  { arxiv = "2411.14199", title = "OpenScholar: Synthesizing Scientific Literature with Retrieval-augmented LMs" },
+]
+
+[[topic]]
+id = "long-context-efficiency"
+input = "question"
+area = "Efficient ML"
+text = "How can transformers process very long contexts without the quadratic cost of full attention?"
+key_papers = [
+  { arxiv = "2004.05150", title = "Longformer: The Long-Document Transformer" },
+  { arxiv = "2205.14135", title = "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness" },
+  { arxiv = "2009.06732", title = "Efficient Transformers: A Survey" },
+  { arxiv = "2312.00752", title = "Mamba: Linear-Time Sequence Modeling with Selective State Spaces" },
+]
+
+[[topic]]
+id = "parameter-efficient-finetuning"
+input = "question"
+area = "NLP"
+text = "Which parameter-efficient fine-tuning methods match full fine-tuning for large language models, and where do they fall short?"
+key_papers = [
+  { arxiv = "2106.09685", title = "LoRA: Low-Rank Adaptation of Large Language Models" },
+  { arxiv = "2305.14314", title = "QLoRA: Efficient Finetuning of Quantized LLMs" },
+  { arxiv = "1902.00751", title = "Parameter-Efficient Transfer Learning for NLP" },
+  { arxiv = "2101.00190", title = "Prefix-Tuning: Optimizing Continuous Prompts for Generation" },
+]
+
+[[topic]]
+id = "llm-as-judge-bias"
+input = "question"
+area = "NLP / Evaluation"
+text = "How reliable are LLMs as automatic judges, and how can their position and self-preference biases be reduced?"
+key_papers = [
+  { arxiv = "2306.05685", title = "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena" },
+  { arxiv = "2305.17926", title = "Large Language Models are not Fair Evaluators" },
+  { arxiv = "2303.16634", title = "G-Eval: NLG Evaluation using GPT-4 with Better Human Alignment" },
+]
+
+[[topic]]
+id = "black-box-hallucination-detection"
+input = "idea"
+area = "NLP"
+text = "Detect hallucinated facts in LLM output without access to the model's internals or an external knowledge base."
+key_papers = [
+  { arxiv = "2303.08896", title = "SelfCheckGPT: Zero-Resource Black-Box Hallucination Detection for Generative Large Language Models" },
+  { arxiv = "2305.14251", title = "FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation" },
+  { arxiv = "2202.03629", title = "Survey of Hallucination in Natural Language Generation" },
+]
+
+[[topic]]
+id = "continual-learning-forgetting"
+input = "question"
+area = "Learning theory / CL"
+text = "How can neural networks learn a sequence of tasks without catastrophic forgetting of earlier ones?"
+key_papers = [
+  { arxiv = "1612.00796", title = "Overcoming catastrophic forgetting in neural networks" },
+  { arxiv = "1706.08840", title = "Gradient Episodic Memory for Continual Learning" },
+  { arxiv = "1611.07725", title = "iCaRL: Incremental Classifier and Representation Learning" },
+]
+
+[[topic]]
+id = "offline-rl-overestimation"
+input = "question"
+area = "RL"
+text = "How can reinforcement learning agents learn good policies from fixed offline datasets without overestimating the value of unseen actions?"
+key_papers = [
+  { arxiv = "2005.01643", title = "Offline Reinforcement Learning: Tutorial, Review, and Perspectives on Open Problems" },
+  { arxiv = "2006.04779", title = "Conservative Q-Learning for Offline Reinforcement Learning" },
+  { arxiv = "2110.06169", title = "Offline Reinforcement Learning with Implicit Q-Learning" },
+  { arxiv = "2106.01345", title = "Decision Transformer: Reinforcement Learning via Sequence Modeling" },
+]
+
+[[topic]]
+id = "vision-distribution-shift"
+input = "question"
+area = "CV"
+text = "Why do image classifiers lose accuracy under natural distribution shift, and which training methods make them more robust?"
+key_papers = [
+  { arxiv = "1902.10811", title = "Do ImageNet Classifiers Generalize to ImageNet?" },
+  { arxiv = "1903.12261", title = "Benchmarking Neural Network Robustness to Common Corruptions and Perturbations" },
+  { arxiv = "2012.07421", title = "WILDS: A Benchmark of in-the-Wild Distribution Shifts" },
+  { arxiv = "2103.00020", title = "Learning Transferable Visual Models From Natural Language Supervision" },
+]
+
+[[topic]]
+id = "masked-plus-contrastive-ssl"
+input = "idea"
+area = "CV"
+text = "Combine masked image modeling with contrastive learning for self-supervised visual pretraining."
+key_papers = [
+  { arxiv = "2002.05709", title = "A Simple Framework for Contrastive Learning of Visual Representations" },
+  { arxiv = "1911.05722", title = "Momentum Contrast for Unsupervised Visual Representation Learning" },
+  { arxiv = "2111.06377", title = "Masked Autoencoders Are Scalable Vision Learners" },
+  { arxiv = "2104.14294", title = "Emerging Properties in Self-Supervised Vision Transformers" },
+]
+
+[[topic]]
+id = "gnn-oversmoothing"
+input = "question"
+area = "Graph ML"
+text = "How can deep graph neural networks avoid over-smoothing as more layers are added?"
+key_papers = [
+  { arxiv = "1609.02907", title = "Semi-Supervised Classification with Graph Convolutional Networks" },
+  { arxiv = "1801.07606", title = "Deeper Insights into Graph Convolutional Networks for Semi-Supervised Learning" },
+  { arxiv = "1907.10903", title = "DropEdge: Towards Deep Graph Convolutional Networks on Node Classification" },
+  { arxiv = "2303.10993", title = "A Survey on Oversmoothing in Graph Neural Networks" },
+]
+
+[[topic]]
+id = "llm-training-data-privacy"
+input = "question"
+area = "Security / Privacy"
+text = "How much training data can be extracted from large language models, and do differential-privacy defenses work at that scale?"
+key_papers = [
+  { arxiv = "1610.05820", title = "Membership Inference Attacks against Machine Learning Models" },
+  { arxiv = "2012.07805", title = "Extracting Training Data from Large Language Models" },
+  { arxiv = "1607.00133", title = "Deep Learning with Differential Privacy" },
+]
+
+[[topic]]
+id = "moe-load-balancing"
+input = "question"
+area = "Efficient ML"
+text = "How can mixture-of-experts language models balance load across experts without hurting model quality?"
+key_papers = [
+  { arxiv = "1701.06538", title = "Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer" },
+  { arxiv = "2101.03961", title = "Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity" },
+  { arxiv = "2006.16668", title = "GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding" },
+  { arxiv = "2401.04088", title = "Mixtral of Experts" },
+]
+
+[[topic]]
+id = "code-generation-evaluation"
+input = "question"
+area = "SE / NLP"
+text = "How should code-generating LLMs be evaluated beyond passing a handful of unit tests?"
+key_papers = [
+  { arxiv = "2107.03374", title = "Evaluating Large Language Models Trained on Code" },
+  { arxiv = "2305.01210", title = "Is Your Code Generated by ChatGPT Really Correct? Rigorous Evaluation of Large Language Models for Code Generation" },
+  { arxiv = "2310.06770", title = "SWE-bench: Can Language Models Resolve Real-World GitHub Issues?" },
+]
+
+[[topic]]
+id = "chain-of-thought-reasoning"
+input = "question"
+area = "NLP / Reasoning"
+text = "Why does chain-of-thought prompting improve LLM reasoning, and when does it fail?"
+key_papers = [
+  { arxiv = "2201.11903", title = "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models" },
+  { arxiv = "2203.11171", title = "Self-Consistency Improves Chain of Thought Reasoning in Language Models" },
+  { arxiv = "2205.11916", title = "Large Language Models are Zero-Shot Reasoners" },
+  { arxiv = "2305.10601", title = "Tree of Thoughts: Deliberate Problem Solving with Large Language Models" },
+]
+
+[[topic]]
+id = "draft-free-speculative-decoding"
+input = "idea"
+area = "Efficient ML"
+text = "Speed up LLM inference with speculative decoding that needs no separate draft model."
+key_papers = [
+  { arxiv = "2211.17192", title = "Fast Inference from Transformers via Speculative Decoding" },
+  { arxiv = "2302.01318", title = "Accelerating Large Language Model Decoding with Speculative Sampling" },
+  { arxiv = "2401.10774", title = "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads" },
+]
+
+[[topic]]
+id = "tabular-deep-learning"
+input = "question"
+area = "Tabular ML"
+text = "Why do tree-based models still beat deep learning on tabular data, and what would close the gap?"
+key_papers = [
+  { arxiv = "2207.08815", title = "Why do tree-based models still outperform deep learning on tabular data?" },
+  { arxiv = "2106.11959", title = "Revisiting Deep Learning Models for Tabular Data" },
+  { arxiv = "2207.01848", title = "TabPFN: A Transformer That Solves Small Tabular Classification Problems in a Second" },
+]
+
+[[topic]]
+id = "federated-non-iid"
+input = "question"
+area = "Distributed ML"
+text = "How can federated learning converge reliably when client data is highly non-IID?"
+key_papers = [
+  { arxiv = "1602.05629", title = "Communication-Efficient Learning of Deep Networks from Decentralized Data" },
+  { arxiv = "1812.06127", title = "Federated Optimization in Heterogeneous Networks" },
+  { arxiv = "1910.06378", title = "SCAFFOLD: Stochastic Controlled Averaging for Federated Learning" },
+]

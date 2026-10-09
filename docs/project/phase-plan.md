@@ -1,6 +1,6 @@
 # Research Agent — Phase Plan (rough)
 
-Draft v1 · 2026-10-02
+Draft v2 · 2026-10-07 (v1: 2026-10-02)
 
 This replaces the phase plan (Section 5) in `architecture-overview-and-project-plan.docx`. The rest of that document still applies: the components, the two outputs, the 5-level novelty scale, the three provenance types, and the evaluation metrics.
 
@@ -16,6 +16,12 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 | Timeline | No fixed deadline. Phases end at milestones, not dates. |
 | Agent shape | A fixed pipeline with a few loops, run by LangGraph. Not a free-roaming tool-picking agent. |
 | Relation to prior work | We don't replicate any one system. We borrow mechanisms from the sources in `docs/literature/` only where they help. |
+| Python | 3.13. torch, transformers, sentence-transformers and PyMuPDF install and import on it (checked 2026-10-07). |
+| Caching | None in the product. API responses and LLM outputs are not cached (decided 2026-10-07). For development only, `RA_REUSE_TEXTS=true` reuses full texts parsed by an earlier run (decided 2026-10-09); it is off by default. |
+| Literature sources | arXiv and OpenAlex are the base sources. Semantic Scholar is added when `RA_S2_API_KEY` is set (key requested 2026-10-07); without a key most of its requests are rejected with HTTP 429. |
+| PDF parsing | PyMuPDF only, no GROBID. Most CS/ML papers have arXiv HTML, so PDFs are the fallback. |
+| LLMs during development | Free tiers (decided 2026-10-09): extraction = Gemini 3.5 Flash-Lite, falling back to Gemini 3.1 Flash-Lite and Gemma 4 31B (Google AI Studio); reasoning = Nemotron 3 Ultra (OpenRouter, free); verifier = gpt-oss-120b (Groq). Stronger models replace them once the whole agent works (`END_TODO.md`). |
+| Corpus size during development | 10 papers read in full + 30 by abstract (decided 2026-10-09), to fit the free LLM limits. On the dev topics, the top 40 hold 86% of the key papers against 88% for the top 100. |
 
 ## Principles
 
@@ -26,7 +32,7 @@ This is a high-level plan. Details for each phase get decided when we reach it.
    - *extraction*: cheap, high volume
    - *reasoning*: ideas, gaps, plans
    - *verifier / judge*: a different provider or model family from the reasoning role
-5. **Cache everything.** API responses and per-paper extractions are cached. This keeps us inside free-tier limits, controls cost, and makes reruns reproducible.
+5. **No caching.** API responses and LLM outputs are not cached. Request pacing and backoff keep us inside rate limits. A rerun makes its requests again, so its results can differ as the literature changes; the trace records what each run fetched.
 
 ## Overview
 
@@ -51,12 +57,14 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 ## Phase 0 — Foundations
 
+**Status:** done (2026-10-07).
+
 **Goal:** The skeleton every later phase plugs into.
 
-- Project layout with `uv`. Confirm the local ML libraries install on the chosen Python version.
+- Project layout with `uv` on Python 3.13. Confirm the local ML libraries install on it.
 - Config and secrets through `.env`, and a CLI skeleton with Typer (`run`, `resume`, `inspect`).
-- **LLM interface:** one internal module with the three roles above, structured outputs validated with Pydantic, and response caching. Providers can be swapped by config.
-- **API clients** for Semantic Scholar, arXiv, OpenAlex and Unpaywall, with caching (`diskcache`) and retry/backoff (`httpx` + `tenacity`). Semantic Scholar works without a key; add a key when one arrives.
+- **LLM interface:** one internal module with the three roles above and structured outputs validated with Pydantic. Providers can be swapped by config; each role gets its model when a phase first needs it.
+- **API clients** for Semantic Scholar, arXiv, OpenAlex and Unpaywall, with retry/backoff (`httpx` + `tenacity`) and per-host request pacing.
 - **Storage:** a first SQLite schema covering papers, sections, sentences, graph nodes and edges, and trace events.
 - **Run trace:** a PROV-DM-shaped event log (inputs, outputs, step, prompt version, sources used and dropped). Every later component writes to it.
 - **LangGraph skeleton** with a stub node for every stage, plus SQLite checkpointing so runs can resume.
@@ -66,13 +74,15 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 ## Phase 1 — Research input + literature acquisition (C1, C2)
 
+**Status:** done (2026-10-09). The LLM research brief (the question's own words plus 2-3 angles in the field's vocabulary) and the LLM relevance check are in, on the free development models. Checked end to end on one dev topic: 545 candidates, 3 of 4 key papers found, all 10 full-read papers parsed, about 7 minutes. The full 18-topic key-paper check, and tuning retrieval with it, are deferred to the end (`END_TODO.md`); they affect retrieval quality, not the pipeline. Before the LLM brief, the check gave 57/64 key papers found (89%), 48/64 in the top 20 (75%) and 56/64 in the top 100 (88%).
+
 **Goal:** For any CS/ML question, find the right papers and turn them into addressable text.
 
 - **Research brief:** the LLM turns the question or idea into a problem statement, a few search angles, keywords, and facets (purpose / mechanism / evaluation) when the user gives an idea.
-- **Search:** Semantic Scholar keyword search, Semantic Scholar snippet search (passages inside papers), and the arXiv API for recent preprints. Deduplicate by arXiv, DOI and Semantic Scholar IDs.
-- **Expand** from the best hits through Semantic Scholar references, citations and recommendations.
-- **Rank:** SPECTER2 similarity (Semantic Scholar supplies the embeddings), then an LLM relevance check. Split the results into an *abstract-only* set and a *full-read* set.
-- **Full text:** use arXiv HTML first. Otherwise use open-access PDFs found via Semantic Scholar or Unpaywall, parsed with GROBID or PyMuPDF. Each paper becomes sections and sentences with stable IDs.
+- **Search:** arXiv API and OpenAlex search. With a Semantic Scholar key, also Semantic Scholar keyword search and snippet search (passages inside papers). Deduplicate by arXiv, DOI, OpenAlex and Semantic Scholar IDs, and by normalised title.
+- **Expand** from the best hits through OpenAlex references, citations and related works. With a key, also Semantic Scholar references, citations and recommendations.
+- **Rank:** SPECTER2 similarity (computed locally; the vectors match Semantic Scholar's), combined with a citation-rate prior and the number of channels and seed papers that led to each paper, then an LLM relevance check. Similarity alone buried the foundational papers (12% of key papers in the top 20). Split the results into an *abstract-only* set and a *full-read* set.
+- **Full text:** use arXiv HTML first. Otherwise use open-access PDFs (from arXiv, or found via OpenAlex, Unpaywall or Semantic Scholar), parsed with PyMuPDF. Each paper becomes sections and sentences with stable IDs.
 - **User uploads** go through the same parsing, tagged "user-provided".
 - **Retrieval log:** every query, every result, and what was kept or dropped, with the reason.
 
@@ -116,7 +126,7 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 **Goal:** Propose ideas and rate how novel they are, honestly.
 
 - **Idea generation** from the top gaps. The prompt asks the LLM to fix a reported limitation, combine methods, or borrow from another CS/ML area, and makes feasibility a requirement. Ideas come out in a fixed structure with facets.
-- **Independent novelty search:** a fresh search driven by the idea itself (keyword queries, whole-idea snippet search, recommendations from the closest papers). It never reuses only the corpus that inspired the idea.
+- **Independent novelty search:** a fresh search driven by the idea itself (keyword queries, whole-idea snippet search, recommendations from the closest papers). It never reuses only the corpus that inspired the idea. Snippet search and recommendations need the Semantic Scholar key; without it the search uses keyword queries and OpenAlex related works, and finds less of the work that describes the same idea in different words.
 - **Closest-work comparison:** rerank by facet match down to about 10 papers, then compare the idea with each one separately, quoting the paper.
 - **Rule-based levels 1–5.** If the result is unclear or the search found little, assign the lower level and mark it "inconclusive". Report search coverage, and always word the result as "potential novelty".
 - **Retry loop:** an idea at level 1–2 has one facet changed and is rechecked. Rejected ideas are remembered so they aren't regenerated. The number of retries is capped.
@@ -190,9 +200,6 @@ Each extension is added only if the Phase 7 numbers show room for it, and each i
 
 ## Open questions (settle during the build)
 
-- How many papers per question to read in full, and how many by abstract only.
 - One idea per run, or the top 3 ranked by novelty level.
 - Optional CLI pause points (confirm the brief, pick the idea before planning).
-- GROBID (needs Docker) or PyMuPDF alone for non-arXiv PDFs.
-- Which providers fill the three LLM roles, and the cost budget per run.
-- The Python version, depending on wheel support for the local ML libraries.
+- Which models fill the three LLM roles in the final system, and the cost budget per run (development uses free tiers).

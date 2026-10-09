@@ -31,3 +31,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Runtime data (database, checkpoints, run reports)
+var/

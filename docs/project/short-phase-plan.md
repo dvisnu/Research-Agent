@@ -1,6 +1,6 @@
-Phase 0 (Foundations) sets up the skeleton: a Python project managed with uv, a Typer command-line interface, an LLM interface with caching, API clients for Semantic Scholar, arXiv, OpenAlex and Unpaywall, SQLite storage, a stub LangGraph pipeline, and the provenance trace. It is done when a stub run passes through every stage and writes a trace.
+Phase 0 (Foundations) sets up the skeleton: a Python project managed with uv, a Typer command-line interface, an LLM interface, API clients for Semantic Scholar, arXiv, OpenAlex and Unpaywall, SQLite storage, a stub LangGraph pipeline, and the provenance trace. It is done when a stub run passes through every stage and writes a trace.
 
-Phase 1 (Input and literature search) turns the user's question into a research brief, searches for papers, expands the results by following citations, ranks them, and converts each paper into numbered sentences using arXiv HTML or GROBID/PyMuPDF. It is done when each test question yields a ranked, parsed set of papers.
+Phase 1 (Input and literature search) turns the user's question into a research brief, searches for papers, expands the results by following citations, ranks them, and converts each paper into numbered sentences using arXiv HTML or PyMuPDF. Its sources are arXiv and OpenAlex, plus Semantic Scholar once an API key is set. It is done when each test question yields a ranked, parsed set of papers.
 
 Phase 2 (Knowledge graph) extracts the contents of each paper, checking every quote against the paper's text. It merges duplicate method and dataset names, stores the graph in SQLite and NetworkX, and adds supports and contradicts links between papers. It is done when the graph is built and the quote-check pass rate has been measured.
 
