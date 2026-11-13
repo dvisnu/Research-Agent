@@ -6,11 +6,12 @@ and labels it core, related or off-topic. Only off-topic papers are dropped, so
 the check removes noise without reordering the ranking.
 """
 
-import sqlite3
-from typing import Literal
+from collections.abc import Mapping, Sequence
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from research_agent.graph.store import JudgmentStore, kept_answer
 from research_agent.literature.brief import ResearchBrief
 from research_agent.llm import LLM, Prompt, Role
 
@@ -40,7 +41,7 @@ You are given a research brief and a numbered list of candidate papers. Label ev
 Foundational work that the problem builds on is related or core, never off_topic, even when its wording differs from the brief. If a candidate has no abstract, judge it by its title. When unsure, choose related."""
 
 
-def relevance_prompt(brief: ResearchBrief, batch: list[sqlite3.Row]) -> Prompt:
+def relevance_prompt(brief: ResearchBrief, batch: Sequence[Mapping[str, Any]]) -> Prompt:
     lines = [f"Research question or idea: {brief.question}", f"Problem: {brief.problem}", "", "Candidates:"]
     for number, row in enumerate(batch, start=1):
         year = f" ({row['year']})" if row["year"] else ""
@@ -49,7 +50,8 @@ def relevance_prompt(brief: ResearchBrief, batch: list[sqlite3.Row]) -> Prompt:
 
 
 def screen(
-    llm: LLM, brief: ResearchBrief, candidates: list[sqlite3.Row], *, want: int, limit: int
+    llm: LLM, judgments: JudgmentStore, brief: ResearchBrief, candidates: Sequence[Mapping[str, Any]], *, want: int,
+    limit: int
 ) -> tuple[dict[str, Judgement], int]:
     """Judge candidates in batches, best-ranked first, until ``want`` of them are
     not off-topic or ``limit`` have been screened.
@@ -63,7 +65,7 @@ def screen(
     while kept < want and screened < end:
         batch = candidates[screened : min(screened + BATCH, end)]
         screened += len(batch)
-        reply = llm.structured(Role.EXTRACTION, relevance_prompt(brief, batch), Judgements)
+        reply = kept_answer(llm, judgments, "relevance_check", Role.EXTRACTION, relevance_prompt(brief, batch), Judgements)
         by_number = {judgement.paper: judgement for judgement in reply.judgements}
         for number, row in enumerate(batch, start=1):
             judgement = by_number.get(number)

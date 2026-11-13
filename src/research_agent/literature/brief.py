@@ -13,6 +13,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from research_agent.graph.store import JudgmentStore, kept_answer
 from research_agent.llm import LLM, Prompt, Role
 
 # arXiv ANDs every term of a query, so its query uses only an angle's first few
@@ -91,14 +92,15 @@ class ResearchBrief(BaseModel):
     rank_query: str  # what candidates are ranked against: the question as written
 
 
-def write_brief(llm: LLM, question: str) -> ResearchBrief:
-    draft = llm.structured(Role.REASONING, brief_prompt(question), BriefDraft)
+def write_brief(llm: LLM, question: str, judgments: JudgmentStore) -> ResearchBrief:
+    """The brief for ``question``; asking the same question again gets the same brief."""
+    draft = kept_answer(llm, judgments, "brief", Role.REASONING, brief_prompt(question), BriefDraft)
     return ResearchBrief(
         question=question,
         input_kind=draft.input_kind,
         problem=draft.problem,
         facets=draft.facets,
-        angles=[question_angle(question), *(_angle(angle) for angle in draft.angles)],
+        angles=[question_angle(question), *(make_angle(angle) for angle in draft.angles)],
         rank_query=" ".join(question.split()),
     )
 
@@ -120,7 +122,7 @@ def question_angle(question: str) -> SearchAngle:
     )
 
 
-def _angle(draft: AngleDraft) -> SearchAngle:
+def make_angle(draft: AngleDraft) -> SearchAngle:
     keywords: list[str] = []
     for keyword in draft.keywords:
         cleaned = " ".join(_UNSAFE.sub(" ", keyword).split())

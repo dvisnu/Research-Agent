@@ -8,7 +8,8 @@ omission can be measured later.
 
 Calls made inside a step (``child_event``) attach to that step through a
 context variable, so clients and the LLM interface need no run plumbing.
-Outside a run they are not recorded.
+Outside a run they are not recorded. So do the counts of kept work a step reused
+or had to ask for (``count``), which measure the caches.
 """
 
 import json
@@ -159,3 +160,14 @@ def child_event(
     )
     with _record(event):
         yield event
+
+
+def count(kind: str, *, reused: int = 0, asked: int = 0) -> None:
+    """Count, on the current step, lookups of kept work of one kind (an LLM reply kind,
+    extractions, embeddings): ``reused`` were found kept, ``asked`` had to be produced."""
+    event = _current.get()
+    if event is None:
+        return
+    kept = event.detail.setdefault("kept", {}).setdefault(kind, {"reused": 0, "asked": 0})
+    kept["reused"] += reused
+    kept["asked"] += asked

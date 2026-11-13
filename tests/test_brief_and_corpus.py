@@ -2,11 +2,13 @@ import json
 from types import SimpleNamespace
 
 from fakes import FakeEmbedder, FakeModel, fake_llm
+from research_agent.graph.store import JudgmentStore
 from research_agent.literature.brief import write_brief
 from research_agent.literature.corpus import Corpus
 from research_agent.literature.papers import PaperRecord, PaperStore
 from research_agent.literature.stages import rank_stage
-from research_agent.llm import LLM, Completion
+from research_agent.llm import LLM, Completion, Role
+from research_agent.storage import Database
 
 QUESTION = "How can retrieval-augmented generation systems reduce hallucinations when documents conflict?"
 
@@ -23,7 +25,8 @@ class DraftModel:
 
 def _brief(settings, draft: dict):
     llm = LLM(settings.model_copy(update={"llm_reasoning": "fake:m"}), providers={"fake": DraftModel(draft)})
-    return write_brief(llm, QUESTION)
+    with Database(settings.db_path) as db:
+        return write_brief(llm, QUESTION, JudgmentStore(db, llm.models(Role.REASONING)))
 
 
 def test_brief_turns_each_angle_into_queries(settings):
@@ -82,7 +85,7 @@ def _rank(db, recorder, settings, papers: dict[str, PaperRecord], model: FakeMod
         db=db, embedder=FakeEmbedder(), llm=llm,
         settings=settings.model_copy(update={"full_read": full, "abstract_only": abstract}),
     )
-    brief = write_brief(llm, "low-rank adaptation of language models")
+    brief = write_brief(llm, "low-rank adaptation of language models", JudgmentStore(db, llm.models(Role.REASONING)))
     with recorder.step("run_test", "rank") as event:
         rank_stage({"run_id": "run_test", "brief": brief.model_dump()}, ctx, event)
     ranked = {row["paper_id"]: row for row in corpus.papers()}

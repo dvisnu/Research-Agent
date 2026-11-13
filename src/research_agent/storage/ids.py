@@ -1,9 +1,10 @@
 """Identifiers, including the sentence address scheme.
 
 Every sentence has an address of the form ``<paper_id>:s<section>:<sentence>``,
-with sections and sentences numbered from 0 in reading order. Addresses are
-positional, so they hold for one parse of a paper's text; the paper row records
-which text and parser produced them (``text_source``, ``text_version``, ``parser``).
+with sections and sentences numbered from 0 in reading order. Every parse of a
+paper is kept: a later text's sections are numbered on from the earlier text's
+last one, so an address always points at the sentence it was given to
+(``literature.texts``; ``paper_texts`` records each text's source and parser).
 """
 
 import re

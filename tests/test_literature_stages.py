@@ -176,9 +176,10 @@ def test_each_angle_of_the_brief_is_searched_on_every_channel(small_corpus_setti
     assert {(f["channel"], f["angle"]) for f in json.loads(lora["found_by"]) if f["channel"] == "arxiv_search"} == {
         ("arxiv_search", 0), ("arxiv_search", 1), ("arxiv_search", 2)}
     # The brief came from the reasoning model, the relevance check from the extraction model.
-    assert [call["model"] for call in model.calls] == ["reasoner", "extractor"]
+    phase1 = [call for call in model.calls if call["output"] in ("BriefDraft", "Judgements")]
+    assert [call["model"] for call in phase1] == ["reasoner", "extractor"]
     llm_calls = [e for e in _events(small_corpus_settings, result.run_id) if e["activity_type"] == "llm_call"]
-    assert [(e["step"], e["prompt_version"]) for e in llm_calls] == [
+    assert [(e["step"], e["prompt_version"]) for e in llm_calls if e["step"] in ("brief", "rank")] == [
         ("brief", "research_brief@v2"), ("rank", "relevance_check@v1")]
 
 

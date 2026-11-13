@@ -1,0 +1,438 @@
+[
+  {
+    "id": "run_b3ac6f3799b24a19:1",
+    "run_id": "run_b3ac6f3799b24a19",
+    "question": "How can retrieval-augmented generation systems reduce hallucinations when the retrieved documents conflict with each other?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_80c3b007515d4156",
+      "title": "FlippedRAG: Black-Box Opinion Manipulation Adversarial Attacks to Retrieval-Augmented Generation Models",
+      "year": 2025,
+      "arxiv_id": "2501.02968",
+      "s2_id": "d542b6e9c383b902a9b07a74d2e60faf8470e1a0"
+    },
+    "idea": {
+      "title": "Adversarial Strategy to Sway Responses in Knowledge Retrieval Systems",
+      "purpose": "This work addresses the vulnerability of knowledge-enhanced language models to stealthy poisoning threats aimed at altering generated viewpoints.",
+      "mechanism": "The approach reverse-engineers the underlying search component using surrogate training to craft subtle document triggers that transfer effectively to target systems.",
+      "evaluation": "It is tested by measuring the attack success rate, the directional shift in generated opinion polarity, and user cognition changes across four domains."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_b3ac6f3799b24a19:2",
+    "run_id": "run_b3ac6f3799b24a19",
+    "question": "How can retrieval-augmented generation systems reduce hallucinations when the retrieved documents conflict with each other?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_94a9b024107a4c8c",
+      "title": "Improving Retrieval-Augmented Generation through Multi-Agent Reinforcement Learning",
+      "year": 2025,
+      "arxiv_id": "2501.15228",
+      "s2_id": "5e5c2b08231678dcb33b1f00bc2dd5bb7045bcd5"
+    },
+    "idea": {
+      "title": "Cooperative Multi-Agent Reinforcement Learning for Information Retrieval and Generation Pipelines",
+      "purpose": "This work addresses the problem of component misalignments in retrieval-augmented generation pipelines when they are optimized separately.",
+      "mechanism": "It treats each component in the pipeline as an independent agent in a cooperative multi-agent reinforcement learning framework, jointly optimizing them toward a shared final answer quality reward.",
+      "evaluation": "Experiments on various question-answering benchmarks demonstrate that the proposed joint optimization approach boosts overall performance and outperforms existing baselines."
+    },
+    "leaks": [
+      "Multi-Agent",
+      "Retrieval-Augmented",
+      "agent",
+      "generation",
+      "multi",
+      "reinforcement",
+      "retrieval"
+    ]
+  },
+  {
+    "id": "run_b3ac6f3799b24a19:3",
+    "run_id": "run_b3ac6f3799b24a19",
+    "question": "How can retrieval-augmented generation systems reduce hallucinations when the retrieved documents conflict with each other?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_0ffd394220814fcc",
+      "title": "QuIM-RAG: Advancing Retrieval-Augmented Generation With Inverted Question Matching for Enhanced QA Performance",
+      "year": 2025,
+      "arxiv_id": "2501.02702",
+      "s2_id": "be299fb19829f9a26e8edbad5583859bd962dc99"
+    },
+    "idea": {
+      "title": "Improving Document Based Answer Generation Through Query Alignment and Indexing",
+      "purpose": "This work addresses information dilution and hallucinations in knowledge integration frameworks when handling large text corpora for answering queries.",
+      "mechanism": "It generates potential queries from document chunks and constructs an inverted index matching strategy to retrieve the most relevant text segments for response generation.",
+      "evaluation": "The approach is compared against traditional retrieval models using semantic similarity and generation evaluation metrics on a custom website corpus with ground truth data."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_ad1e591508bc4c69:1",
+    "run_id": "run_ad1e591508bc4c69",
+    "question": "Which parameter-efficient fine-tuning methods match full fine-tuning for large language models, and where do they fall short?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_afb904c2be2b4ec2",
+      "title": "SaLoRA: Safety-Alignment Preserved Low-Rank Adaptation",
+      "year": 2025,
+      "arxiv_id": "2501.01765",
+      "s2_id": "ea693001245ba993cbd4387f21b41958a0948746"
+    },
+    "idea": {
+      "title": "Preserving safety alignment during parameter efficient adaptation of language models",
+      "purpose": "This work addresses the issue where adaptation techniques inadvertently compromise the safety alignment of language models during task-specific tuning.",
+      "mechanism": "It introduces a fixed safety module derived from safety data combined with targeted initialization for trainable adaptation parameters.",
+      "evaluation": "Experiments are conducted to compare the approach against various adapter baselines across multiple tasks and metrics."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_ad1e591508bc4c69:2",
+    "run_id": "run_ad1e591508bc4c69",
+    "question": "Which parameter-efficient fine-tuning methods match full fine-tuning for large language models, and where do they fall short?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_73e42aedf9b54192",
+      "title": "TriAdaptLoRA: Brain-Inspired Triangular Adaptive Low-Rank Adaptation for Parameter-Efficient Fine-Tuning",
+      "year": 2025,
+      "arxiv_id": "2501.08008",
+      "s2_id": "c793e85f46bf63e30a8afc81a4c9d78fbfd453ab"
+    },
+    "idea": {
+      "title": "Brain-Inspired Dynamic Matrix Factorization for Efficient Language Model Adaptation",
+      "purpose": "Current parameter reduction techniques struggle with suboptimal capacity allocation and inflexible dimensionality management during model training.",
+      "mechanism": "It divides transformation matrices into specialized components, assesses parameter importance using norm metrics, and dynamically adjusts internal dimensions throughout the learning process.",
+      "evaluation": "It is tested on various language understanding and generation tasks to demonstrate superior performance and computational efficiency."
+    },
+    "leaks": [
+      "Brain-Inspired"
+    ]
+  },
+  {
+    "id": "run_ad1e591508bc4c69:3",
+    "run_id": "run_ad1e591508bc4c69",
+    "question": "Which parameter-efficient fine-tuning methods match full fine-tuning for large language models, and where do they fall short?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_8c7a6f2957ae425d",
+      "title": "Structure-Learnable Adapter Fine-Tuning for Parameter-Efficient Large Language Models",
+      "year": 2025,
+      "arxiv_id": "2509.03057",
+      "s2_id": "91ff2a3b3940a9ff11c8f85eb9341cc01ab660c3"
+    },
+    "idea": {
+      "title": "Optimizing Modular Network Insertion and Routing for Efficient Multi-Task Adaptation",
+      "purpose": "This work addresses parameter redundancy and inflexible routing in modular network updates for large language models.",
+      "mechanism": "It introduces learnable gating functions and sparsity controls to dynamically optimize module placement and activation pathways during training while keeping the core network frozen.",
+      "evaluation": "It is evaluated on multiple multi-task language understanding benchmarks to measure accuracy, compression, and robustness against noise."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_c2937fa242a747c5:1",
+    "run_id": "run_c2937fa242a747c5",
+    "question": "I want to improve retrieval for scientific RAG.",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_6dd81847bc8f4e5c",
+      "title": "Microsoft Academic Graph Information Retrieval for Research Recommendation and Assistance",
+      "year": 2025,
+      "arxiv_id": "2512.16661",
+      "s2_id": "bb50f89afaf6b1d1eb3d4c8525c8f57c51dc0aa1"
+    },
+    "idea": {
+      "title": "Attention-Based Subgraph Retrieval for Scientific Information Processing",
+      "purpose": "This work addresses the challenge of filtering and searching through massive volumes of scientific publications in large information databases.",
+      "mechanism": "It uses a graph neural network with attention mechanisms to prune and extract a refined subgraph from a larger knowledge graph, which is then provided to a large language model for reasoning.",
+      "evaluation": "It is evaluated on academic retrieval tasks by measuring reasoning and extraction performance against baseline methods."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_c2937fa242a747c5:2",
+    "run_id": "run_c2937fa242a747c5",
+    "question": "I want to improve retrieval for scientific RAG.",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_3e0511f1c8694163",
+      "title": "+VeriRel: Verification Feedback to Enhance Document Retrieval for Scientific Fact Checking",
+      "year": 2025,
+      "arxiv_id": "2508.11122",
+      "s2_id": "3a18bd5ad3d8ca5fb146e262df0716b4d4e01f1d"
+    },
+    "idea": {
+      "title": "Integrating Proof Assessment into Evidence Selection for Fact Validation",
+      "purpose": "Existing information search approaches rank texts by textual relevance instead of their actual utility for supporting or refuting claims.",
+      "mechanism": "The proposed approach incorporates evidence validation feedback directly into the text ranking process.",
+      "evaluation": "Experimental results on multiple evidence validation datasets demonstrate leading performance for text selection and downstream reasoning."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_c2937fa242a747c5:3",
+    "run_id": "run_c2937fa242a747c5",
+    "question": "I want to improve retrieval for scientific RAG.",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_d1ca9b31ba0f456b",
+      "title": "Retrieval Augmented Generation of Literature-derived Polymer Knowledge: The Example of a Biodegradable Polymer Expert System",
+      "year": 2026,
+      "arxiv_id": "2602.16650",
+      "s2_id": "0cc4a85a30fc9b1afeda56e214913a81fc0f0786"
+    },
+    "idea": {
+      "title": "Building an Expert Assistant for Materials Science Using Graph and Vector Queries",
+      "purpose": "This work addresses the challenge of systematically retrieving and reasoning over unstructured scientific text that suffers from inconsistent terminology and scattered experimental data.",
+      "mechanism": "We implement and compare two query pipelines, one using semantic vector embeddings and another using a structured knowledge graph, to provide context-preserving information to a language model.",
+      "evaluation": "The systems are evaluated using standard retrieval metrics, comparisons against general language models, and qualitative validation by a domain expert."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_a46f7559314c48fa:1",
+    "run_id": "run_a46f7559314c48fa",
+    "question": "How can transformers process very long contexts without the quadratic cost of full attention?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_68d56787a7cc4e6d",
+      "title": "Gated Differentiable Working Memory for Long-Context Language Modeling",
+      "year": 2026,
+      "arxiv_id": "2601.12906",
+      "s2_id": "fc9b021cdad23d506302a982890cb3fd04c9119a"
+    },
+    "idea": {
+      "title": "Efficient Test-Time Adaptation via Utility-Based Information Consolidation for Transformers",
+      "purpose": "Transformers fail to retain critical information over extended inputs and waste computation during inference adaptation.",
+      "mechanism": "A selective controller estimates the informational value of input segments and restricts gradient updates to high-utility regions.",
+      "evaluation": "Experiments on long-sequence evaluation suites demonstrate superior performance with fewer gradient steps compared to uniform update baselines."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_a46f7559314c48fa:2",
+    "run_id": "run_a46f7559314c48fa",
+    "question": "How can transformers process very long contexts without the quadratic cost of full attention?",
+    "kind": "resource",
+    "source": {
+      "paper_id": "p_8c9240e8207945f6",
+      "title": "Vox-Infinity: Benchmarking the Limits of Long-Context Spoken Language Models",
+      "year": 2026,
+      "arxiv_id": "2609.22452",
+      "s2_id": "57a5dfeb444bcb32b808080b8511dc59b95282b3"
+    },
+    "idea": {
+      "title": "Evaluating Extended Audio Memory Limits in Spoken Dialogue Systems",
+      "purpose": "This work addresses the lack of evaluations for audio-based models handling extended conversational histories where critical information is easily forgotten.",
+      "mechanism": "It constructs a benchmark that extends audio history across multiple turns and durations, featuring fine-grained provenance annotations and varying semantic complexity.",
+      "evaluation": "It tests several representative audio models to measure how performance degrades as the required historical evidence is placed further back in the dialogue."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_a46f7559314c48fa:3",
+    "run_id": "run_a46f7559314c48fa",
+    "question": "How can transformers process very long contexts without the quadratic cost of full attention?",
+    "kind": "resource",
+    "source": {
+      "paper_id": "p_6b15c02d6e314344",
+      "title": "Ref-Long: Benchmarking the Long-context Referencing Capability of Long-context Language Models",
+      "year": 2025,
+      "arxiv_id": "2507.09506",
+      "s2_id": "669a414381a91dd62d2c3de03863792703769ad2"
+    },
+    "idea": {
+      "title": "Evaluating Extended Text Attribution Abilities in Large Language Models",
+      "purpose": "This work addresses the underexplored capability of attributing items to specific sections across extensive textual inputs.",
+      "mechanism": "It introduces a benchmark suite containing synthetic and realistic subsets that require identifying document indices associated with a target key.",
+      "evaluation": "Thirteen advanced language models are tested on this benchmark, accompanied by human evaluations, format adjustments, fine-tuning, and error analyses."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_084da50e292b4e8b:1",
+    "run_id": "run_084da50e292b4e8b",
+    "question": "How can reinforcement learning agents learn good policies from fixed offline datasets without overestimating the value of unseen actions?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_50762acb983c47e7",
+      "title": "Behavior-Adaptive Q-Learning: A Unifying Framework for Offline-to-Online RL",
+      "year": 2025,
+      "arxiv_id": "2511.03695",
+      "s2_id": "891b005e9caf8c92e00d1842c1e9c293f74ad597"
+    },
+    "idea": {
+      "title": "Bridging offline and online reinforcement learning via behavior-adaptive regularization",
+      "purpose": "This work addresses the poor performance and instability of policies learned from static data when transitioning to online fine-tuning in dynamic environments.",
+      "mechanism": "It introduces a dual-objective loss function that leverages an implicit behavioral model to align the online policy with the offline data distribution when uncertainty is high, gradually relaxing the constraint as reliable experience accumulates.",
+      "evaluation": "The approach is tested across standard reinforcement learning benchmarks, demonstrating improved robustness, faster recovery, and higher overall performance compared to prior baselines."
+    },
+    "leaks": [
+      "Behavior-Adaptive",
+      "adaptive",
+      "behavior",
+      "offline",
+      "online"
+    ]
+  },
+  {
+    "id": "run_084da50e292b4e8b:2",
+    "run_id": "run_084da50e292b4e8b",
+    "question": "How can reinforcement learning agents learn good policies from fixed offline datasets without overestimating the value of unseen actions?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_6776566db22d4f71",
+      "title": "Offline RL with Smooth OOD Generalization in Convex Hull and its Neighborhood",
+      "year": 2025,
+      "arxiv_id": "2506.08417",
+      "s2_id": "a853e3fc748bc788f018dc7d6b158d73548c2fb2"
+    },
+    "idea": {
+      "title": "Improving offline reinforcement learning via smooth value generalization in out-of-distribution regions",
+      "purpose": "This work addresses the over-constraint issue and value overestimation caused by distributional shifts in offline reinforcement learning.",
+      "mechanism": "The approach introduces a modified Bellman operator that updates out-of-distribution values by smoothing them with neighboring in-sample values within a safety-guaranteed neighborhood.",
+      "evaluation": "The method is evaluated on standard offline reinforcement learning benchmark suites against existing state-of-the-art algorithms."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_084da50e292b4e8b:3",
+    "run_id": "run_084da50e292b4e8b",
+    "question": "How can reinforcement learning agents learn good policies from fixed offline datasets without overestimating the value of unseen actions?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_81f42cb4bc9a43dc",
+      "title": "Belief-Based Offline Reinforcement Learning for Delay-Robust Policy Optimization",
+      "year": 2025,
+      "arxiv_id": "2506.00131",
+      "s2_id": "215430b1a92aa08bfe1ee48eee622cba75f24555"
+    },
+    "idea": {
+      "title": "Transformer-Based Belief Prediction for Latency-Resistant Offline Reinforcement Learning",
+      "purpose": "This work addresses the problem of offline reinforcement learning agents failing when deployed in environments with action and observation latencies not present in the static training logs.",
+      "mechanism": "It uses a sequence model to predict a belief state over past histories, generating stable actions under delays despite being trained only on delay-free data.",
+      "evaluation": "Experiments across various delay settings on standard simulation benchmarks demonstrate improved performance compared to baseline history-augmentation methods."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_3f81cec9b9514ff7:1",
+    "run_id": "run_3f81cec9b9514ff7",
+    "question": "Why do image classifiers lose accuracy under natural distribution shift, and which training methods make them more robust?",
+    "kind": "analysis",
+    "source": {
+      "paper_id": "p_e142308b5adc47e5",
+      "title": "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? - A Theoretical and Empirical Study",
+      "year": 2026,
+      "arxiv_id": "2607.06603",
+      "s2_id": "b88ce18d313dea9fb3bc039581fbd865e613c62c"
+    },
+    "idea": {
+      "title": "Investigating the Relationship Between Counterfactual Fairness and Group Fairness in Images",
+      "purpose": "This work clarifies whether satisfying counterfactual fairness ensures group fairness in image classification tasks.",
+      "mechanism": "We theoretically analyze how latent correlated attributes break the implication and empirically evaluate both fairness notions on newly constructed image evaluation datasets.",
+      "evaluation": "Extensive experiments on newly built image benchmarks demonstrate how reducing reliance on correlated latent attributes helps counterfactual fair models satisfy group fairness."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_3f81cec9b9514ff7:2",
+    "run_id": "run_3f81cec9b9514ff7",
+    "question": "Why do image classifiers lose accuracy under natural distribution shift, and which training methods make them more robust?",
+    "kind": "analysis",
+    "source": {
+      "paper_id": "p_8ffbdbd2e3e847dd",
+      "title": "Impact of Data Duplication on Deep Neural Network-Based Image Classifiers: Robust vs. Standard Models",
+      "year": 2025,
+      "arxiv_id": "2504.00638",
+      "s2_id": "0db3d4ab34bcbf2e763e8ace33883e507317dd82"
+    },
+    "idea": {
+      "title": "Studying the Effects of Duplicate Images on Image Classification Models",
+      "purpose": "This work investigates how the presence of duplicated images in training sets impacts the generalization and accuracy of vision models.",
+      "mechanism": "The study empirically analyzes model performance under various scenarios of uniform and non-uniform data duplication across standard and robust training pipelines.",
+      "evaluation": "It is evaluated by measuring the training efficiency and classification accuracy of networks trained on datasets containing varying levels of duplicate images."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_3f81cec9b9514ff7:3",
+    "run_id": "run_3f81cec9b9514ff7",
+    "question": "Why do image classifiers lose accuracy under natural distribution shift, and which training methods make them more robust?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_d14d7d20b6504fc7",
+      "title": "Mitigating Clever Hans Strategies in Image Classifiers through Generating Counterexamples",
+      "year": 2025,
+      "arxiv_id": "2510.17524",
+      "s2_id": "e17162f2b3711c92d88436cf117f38e36afcfb46"
+    },
+    "idea": {
+      "title": "Correcting Spurious Correlations in Visual Classifiers Using Generated Counterexamples",
+      "purpose": "This work addresses the vulnerability of deep models to spurious correlations when group labels are absent and data is scarce.",
+      "mechanism": "It generates diverse counterexamples to let annotators correct decision boundaries via knowledge distillation, enriching undersampled groups without needing confounder labels.",
+      "evaluation": "The approach is evaluated across five datasets ranging from synthetic tasks to an industrial application, measuring generalization improvements and robustness."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_5887f25672ee4cc6:1",
+    "run_id": "run_5887f25672ee4cc6",
+    "question": "How reliable are LLMs as automatic judges, and how can their position and self-preference biases be reduced?",
+    "kind": "resource",
+    "source": {
+      "paper_id": "p_121e9d2c5949472d",
+      "title": "Counsel: A Meta-Evaluation Dataset for Agentic Tasks",
+      "year": 2026,
+      "arxiv_id": "2606.21627",
+      "s2_id": "573886f093438f485e10616ff78d84758bb6e056"
+    },
+    "idea": {
+      "title": "A Benchmark for Assessing Automated Judges of Multi-Step Agent Trajectories",
+      "purpose": "The high cost of human annotation for complex agent tasks creates a bottleneck, while the reliability of automated judges remains unmeasured.",
+      "mechanism": "We collected a public collection of process-level critiques generated by language model judges on various agent tasks, paired with detailed human quality labels.",
+      "evaluation": "We tested several judge models and reasoning configurations against human annotations to measure their alignment on error location and reasoning quality."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_5887f25672ee4cc6:2",
+    "run_id": "run_5887f25672ee4cc6",
+    "question": "How reliable are LLMs as automatic judges, and how can their position and self-preference biases be reduced?",
+    "kind": "method",
+    "source": {
+      "paper_id": "p_e1bff999d8604734",
+      "title": "BayesJudge: Uncertainty-Aware Bayesian Meta-Evaluation of Human and LLM Judgments",
+      "year": 2026,
+      "arxiv_id": "2610.11116",
+      "s2_id": "67158d132737424bbe8bbbd62fb2a61f8883f54e"
+    },
+    "idea": {
+      "title": "Online Bayesian Aggregation of Conflicting Rater Decisions and Position Biases",
+      "purpose": "The approach addresses the problem of noisy and conflicting pairwise preference decisions from multiple unreliable human and automated judges.",
+      "mechanism": "It uses an online probabilistic inference framework that jointly estimates underlying item quality alongside rater confusion matrices and presentation-order biases.",
+      "evaluation": "The framework is tested through controlled synthetic simulations and evaluated on a benchmark summarization dataset to verify parameter recovery and bias detection."
+    },
+    "leaks": []
+  },
+  {
+    "id": "run_5887f25672ee4cc6:3",
+    "run_id": "run_5887f25672ee4cc6",
+    "question": "How reliable are LLMs as automatic judges, and how can their position and self-preference biases be reduced?",
+    "kind": "analysis",
+    "source": {
+      "paper_id": "p_041a75c77b66484e",
+      "title": "LLM-as-a-Judge: Rapid Evaluation of Legal Document Recommendation for Retrieval-Augmented Generation",
+      "year": 2025,
+      "arxiv_id": "2509.12382",
+      "s2_id": "cec2f7e9849e69a96707548b5854aeedf68a7a3f"
+    },
+    "idea": {
+      "title": "Evaluating Automated LLM Judges for Legal Information Retrieval Systems",
+      "purpose": "This paper investigates how to reliably use large language models as automated judges for evaluating specialized document retrieval systems.",
+      "mechanism": "The study analyzes different inter-rater reliability metrics and statistical tests to determine which ones robustly capture alignment with human assessments and enable sound system comparisons.",
+      "evaluation": "It is evaluated through systematic experimentation comparing various agreement metrics and statistical tests on evaluation data."
+    },
+    "leaks": []
+  }
+]

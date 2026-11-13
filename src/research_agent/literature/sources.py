@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Self
 
 from research_agent.clients import Arxiv, OpenAlex, SemanticScholar, Unpaywall
+from research_agent.clients.cache import ResponseCache
 from research_agent.clients.http import ApiClient
 from research_agent.config import Settings
 
@@ -53,19 +54,22 @@ class Sources:
     downloader: Downloader
     s2: SemanticScholar | None  # only with an API key
     unpaywall: Unpaywall | None  # only with a contact email
+    cache: ResponseCache | None = None  # the search APIs' kept responses; full texts are not kept here
 
     @classmethod
     def from_settings(cls, settings: Settings) -> Self:
+        cache = ResponseCache(settings.responses_path, settings.response_cache_days)
         return cls(
-            arxiv=Arxiv(),
+            arxiv=Arxiv(cache=cache),
             arxiv_web=ArxivWeb(),
-            openalex=OpenAlex(settings),
+            openalex=OpenAlex(settings, cache=cache),
             downloader=Downloader(),
-            s2=SemanticScholar(settings) if settings.s2_api_key else None,
-            unpaywall=Unpaywall(settings) if settings.contact_email else None,
+            s2=SemanticScholar(settings, cache=cache) if settings.s2_api_key else None,
+            unpaywall=Unpaywall(settings, cache=cache) if settings.contact_email else None,
+            cache=cache,
         )
 
     def close(self) -> None:
-        for client in (self.arxiv, self.arxiv_web, self.openalex, self.downloader, self.s2, self.unpaywall):
+        for client in (self.arxiv, self.arxiv_web, self.openalex, self.downloader, self.s2, self.unpaywall, self.cache):
             if client is not None:
                 client.close()

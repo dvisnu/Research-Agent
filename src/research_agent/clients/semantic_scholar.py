@@ -91,10 +91,14 @@ class SemanticScholar(ApiClient):
             papers += [S2Paper.model_validate(p) if p else None for p in response.json()]
         return papers
 
-    def search(self, query: str, *, limit: int = 20, fields: str = PAPER_FIELDS) -> list[S2Paper]:
-        response = self.get(
-            "/graph/v1/paper/search", params={"query": query, "limit": limit, "fields": fields}
-        )
+    def search(
+        self, query: str, *, limit: int = 20, fields: str = PAPER_FIELDS, year: str | None = None
+    ) -> list[S2Paper]:
+        """``year`` limits publication years, e.g. "2025-" or "2020-2023"."""
+        params: dict[str, Any] = {"query": query, "limit": limit, "fields": fields}
+        if year:
+            params["year"] = year
+        response = self.get("/graph/v1/paper/search", params=params)
         return [S2Paper.model_validate(p) for p in response.json().get("data") or []]
 
     def references(

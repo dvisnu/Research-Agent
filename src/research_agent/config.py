@@ -21,7 +21,12 @@ class Settings(BaseSettings):
     llm_reasoning: str | None = None
     llm_verifier: str | None = None
 
-    # API keys for the LLM providers.
+    # Text embeddings for linking claims across papers, "provider:model" (Phase 2).
+    # Unset: claims are linked only through shared datasets and metrics.
+    embedding: str | None = None
+    embedding_dims: int = Field(768, ge=128, le=3072)
+
+    # API keys for the LLM and embedding providers.
     google_api_key: SecretStr | None = None
     openrouter_api_key: SecretStr | None = None
     groq_api_key: SecretStr | None = None
@@ -43,6 +48,10 @@ class Settings(BaseSettings):
     # them again. Off by default, so a normal run fetches every text fresh.
     reuse_texts: bool = False
 
+    # The search APIs' responses are kept and reused for this many days, so a rerun of a
+    # question finds the same papers. 0 fetches fresh (and keeps what it fetched).
+    response_cache_days: float = Field(30, ge=0)
+
     @field_validator("llm_extraction", "llm_reasoning", "llm_verifier")
     @classmethod
     def _check_model_spec(cls, value: str | None) -> str | None:
@@ -52,6 +61,15 @@ class Settings(BaseSettings):
                 if not provider or not model:
                     # The value is not echoed: it may be an API key in the wrong variable.
                     raise ValueError("expected 'provider:model', or several separated by commas")
+        return value
+
+    @field_validator("embedding")
+    @classmethod
+    def _check_embedding_spec(cls, value: str | None) -> str | None:
+        if value is not None:
+            provider, _, model = value.strip().partition(":")
+            if not provider or not model or "," in model:
+                raise ValueError("expected 'provider:model'")
         return value
 
     @model_validator(mode="after")
@@ -69,6 +87,10 @@ class Settings(BaseSettings):
     @property
     def checkpoint_path(self) -> Path:
         return self.data_dir / "checkpoints.db"
+
+    @property
+    def responses_path(self) -> Path:
+        return self.data_dir / "responses.db"
 
     @property
     def runs_dir(self) -> Path:

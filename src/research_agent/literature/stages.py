@@ -14,12 +14,14 @@ import numpy as np
 import pymupdf
 
 from research_agent.clients.openalex import CS_FILTER
+from research_agent.graph.store import JudgmentStore
 from research_agent.literature.brief import ResearchBrief, write_brief
 from research_agent.literature.corpus import Corpus
 from research_agent.literature.papers import PaperRecord, PaperStore, from_arxiv, from_openalex, from_s2
 from research_agent.literature.parse import ParsedText, parse_arxiv_html, parse_pdf
 from research_agent.literature.relevance import screen
-from research_agent.literature.texts import abstract_text, store_text
+from research_agent.literature.texts import EXTENDED_PREFIX, abstract_text, store_text
+from research_agent.llm import Role
 from research_agent.trace import Event, ref
 
 if TYPE_CHECKING:
@@ -61,7 +63,7 @@ def _brief(state: "PipelineState") -> ResearchBrief:
 
 
 def brief_stage(state: "PipelineState", ctx: "PipelineContext", event: Event) -> dict[str, Any]:
-    brief = write_brief(ctx.llm, state["question"])
+    brief = write_brief(ctx.llm, state["question"], JudgmentStore(ctx.db, ctx.llm.models(Role.REASONING)))
     event.detail["brief"] = brief.model_dump()
     event.generated.append(ref("brief", state["run_id"]))
     return {"brief": brief.model_dump()}
@@ -113,7 +115,7 @@ def _add_uploads(ctx: "PipelineContext", run_id: str, paths: list[str], event: E
         record = PaperRecord(source="upload", title=parsed.title or path.stem, arxiv_id=parsed.arxiv_id)
         paper_id = store.upsert(record)
         sentences = store_text(ctx.db, paper_id, parsed, source="upload", parser=PDF_PARSER)
-        corpus.add(paper_id, {"channel": "upload", "file": path.name})
+        corpus.add(paper_id, {"channel": "upload", "file": path.name}, record)
         event.generated += [ref("paper", paper_id), ref("text", paper_id)]
         log.append({"file": path.name, "paper": paper_id, "title": record.title, "sentences": sentences})
     return log
@@ -157,7 +159,7 @@ def _collect(
             if record is None:
                 continue
             paper_id = store.upsert(record)
-            corpus.add(paper_id, {**describe(name, rank), **extra})
+            corpus.add(paper_id, {**describe(name, rank), **extra}, record)
             paper_ids.append(paper_id)
             if paper_id not in found:
                 found.append(paper_id)
@@ -176,7 +178,7 @@ def expand_stage(state: "PipelineState", ctx: "PipelineContext", event: Event) -
     channels: list[tuple[str, str, Callable[[str], Found]]] = []
     for seed in seeds:
         if sources.s2:
-            key = _s2_key(seed)
+            key = s2_key(seed)
             if key:
                 channels += [
                     (f"s2_references:{seed['paper_id']}", key,
@@ -187,7 +189,7 @@ def expand_stage(state: "PipelineState", ctx: "PipelineContext", event: Event) -
                      lambda k: [(from_s2(p), {}) for p in sources.s2.recommendations(k, limit=RECOMMENDATIONS)]),
                 ]
         else:
-            channels.append((f"openalex_links:{seed['paper_id']}", _openalex_key(seed), lambda k: _openalex_links(ctx, k)))
+            channels.append((f"openalex_links:{seed['paper_id']}", openalex_key(seed), lambda k: _openalex_links(ctx, k)))
 
     def describe(name: str, rank: int) -> dict[str, Any]:
         channel, seed_id = name.split(":", 1)
@@ -199,7 +201,7 @@ def expand_stage(state: "PipelineState", ctx: "PipelineContext", event: Event) -
     return {}
 
 
-def _s2_key(seed: Any) -> str | None:
+def s2_key(seed: Any) -> str | None:
     if seed["s2_id"]:
         return seed["s2_id"]
     if seed["arxiv_id"]:
@@ -207,7 +209,7 @@ def _s2_key(seed: Any) -> str | None:
     return f"DOI:{seed['doi']}" if seed["doi"] else None
 
 
-def _openalex_key(seed: Any) -> str:
+def openalex_key(seed: Any) -> str:
     if seed["openalex_id"]:
         return seed["openalex_id"]
     if seed["arxiv_id"]:
@@ -243,9 +245,13 @@ def rank_stage(state: "PipelineState", ctx: "PipelineContext", event: Event) -> 
 
     The LLM relevance check then reads the best-scored candidates in order and
     drops the off-topic ones; the corpus is the first papers it keeps.
+
+    Titles, abstracts, years and citation counts are what this run's own searches
+    returned (``Corpus.candidates``), so a rerun reading the same kept responses
+    ranks the same way, whatever the paper store has learned since.
     """
     corpus = Corpus(ctx.db, state["run_id"])
-    rows = corpus.papers()
+    rows = corpus.candidates()
     event.detail["candidates"] = len(rows)
     if not rows:
         return {}
@@ -268,7 +274,8 @@ def rank_stage(state: "PipelineState", ctx: "PipelineContext", event: Event) -> 
     uploaded = {row["paper_id"] for row in rows if _uploaded(row)}
     candidates = [rows[index] for index in order if rows[index]["paper_id"] not in uploaded]
     judged, screened = (
-        screen(ctx.llm, brief, candidates, want=kept, limit=SCREEN_LIMIT * kept) if kept else ({}, 0)
+        screen(ctx.llm, JudgmentStore(ctx.db, ctx.llm.models(Role.EXTRACTION)), brief, candidates, want=kept,
+               limit=SCREEN_LIMIT * kept) if kept else ({}, 0)
     )
     screened_ids = {row["paper_id"] for row in candidates[:screened]}
     event.detail["relevance_check"] = {
@@ -337,7 +344,7 @@ def fulltext_stage(state: "PipelineState", ctx: "PipelineContext", event: Event)
     for row in corpus.papers("full"):
         paper_id = row["paper_id"]
         event.used.append(ref("paper", paper_id))
-        if row["text_source"] in FULL_TEXT_SOURCES:
+        if is_full_text(row["text_source"]):
             if _uploaded(row):
                 log.append({"paper": paper_id, "result": "uploaded by the user"})
                 event.generated.append(ref("text", paper_id))
@@ -346,7 +353,7 @@ def fulltext_stage(state: "PipelineState", ctx: "PipelineContext", event: Event)
                 log.append({"paper": paper_id, "result": f"reused {row['text_source']} text from an earlier run"})
                 event.generated.append(ref("text", paper_id))
                 continue
-        parsed, source, parser, tried = _fetch_full_text(ctx, row)
+        parsed, source, parser, tried = fetch_full_text(ctx, row)
         sentences = None
         if parsed is not None:
             try:
@@ -369,6 +376,12 @@ def fulltext_stage(state: "PipelineState", ctx: "PipelineContext", event: Event)
     return {}
 
 
+def is_full_text(text_source: str | None) -> bool:
+    """Whether a paper's stored text has its body: a full text, or an abstract a novelty
+    check extended with the body (``extend_text``)."""
+    return text_source in FULL_TEXT_SOURCES or (text_source or "").startswith(EXTENDED_PREFIX)
+
+
 def _uploaded(row: Any) -> bool:
     """Whether the user uploaded this paper in this run, so its stored text is this run's."""
     return any(f["channel"] == "upload" for f in json.loads(row["found_by"]))
@@ -384,7 +397,7 @@ def _store_abstract(ctx: "PipelineContext", row: Any) -> bool:
     return True
 
 
-def _fetch_full_text(
+def fetch_full_text(
     ctx: "PipelineContext", row: Any
 ) -> tuple[ParsedText | None, str, str, list[dict[str, str]]]:
     """Try arXiv HTML, then arXiv PDF, then any open-access PDF. Returns what worked and every try."""

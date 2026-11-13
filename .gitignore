@@ -34,3 +34,7 @@ Thumbs.db
 
 # Runtime data (database, checkpoints, run reports)
 var/
+
+# Web UI: its packages, and the build `agent ui` serves (npm run build in frontend/)
+frontend/node_modules/
+src/research_agent/web/static/

@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+mark {
+  @apply rounded-sm bg-amber-200/70 px-0.5 text-inherit;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgb(79 70 229 / 0.45); }
+  100% { box-shadow: 0 0 0 8px rgb(79 70 229 / 0); }
+}
+
+.pulse-ring {
+  animation: pulse-ring 1.6s ease-out infinite;
+}

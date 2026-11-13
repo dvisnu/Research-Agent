@@ -107,7 +107,7 @@ class ChatCompletions:
                 break
             if wait is None:
                 raise LLMUnavailable(
-                    f"provider error after retries: {_error_text(response)}", lasting=_daily(response)
+                    f"provider error after retries: {error_text(response)}", lasting=daily_quota(response)
                 )
             self._sleep(wait)
         message = data["choices"][0]["message"]
@@ -126,8 +126,8 @@ class ChatCompletions:
             return self._client.post("/chat/completions", json=body)
         except RetryableStatus as exc:
             raise LLMUnavailable(
-                f"HTTP {exc.response.status_code} after retries: {_error_text(exc.response)}",
-                lasting=exc.response.status_code == 429 and _daily(exc.response),
+                f"HTTP {exc.response.status_code} after retries: {error_text(exc.response)}",
+                lasting=exc.response.status_code == 429 and daily_quota(exc.response),
             ) from exc
         except httpx.TransportError as exc:
             raise LLMUnavailable(f"{type(exc).__name__} after retries") from exc
@@ -135,7 +135,7 @@ class ChatCompletions:
             hint = f" Check RA_{self.endpoint.key_setting.upper()}." if exc.response.status_code in (401, 403) else ""
             raise LLMError(
                 f"{self.endpoint.name} rejected the request for {model}: "
-                f"HTTP {exc.response.status_code}: {_error_text(exc.response)}.{hint}"
+                f"HTTP {exc.response.status_code}: {error_text(exc.response)}.{hint}"
             ) from exc
 
     def close(self) -> None:
@@ -159,12 +159,12 @@ def inline_refs(schema: dict[str, Any]) -> dict[str, Any]:
     return inline(schema)
 
 
-def _daily(response: httpx.Response) -> bool:
+def daily_quota(response: httpx.Response) -> bool:
     """Whether the error is a used-up daily quota, which won't recover within the session."""
     return bool(_DAILY.search(response.text))
 
 
-def _error_text(response: httpx.Response) -> str:
+def error_text(response: httpx.Response) -> str:
     try:
         data = response.json()
     except ValueError:

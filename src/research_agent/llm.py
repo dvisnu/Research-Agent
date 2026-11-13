@@ -10,7 +10,9 @@ Three roles, each mapped to one or more models in config
 Callers name a role, a versioned prompt and a Pydantic output type, and get a
 validated object back. A role's later models are fallbacks: when a model is
 unavailable (its quota used up, or its provider down), the role moves to the
-next one for the rest of the session, and the trace records which model answered.
+next one for the rest of the session, and the trace records which model answered. So
+does a model whose calls fail ``MAX_STRIKES`` times in a row (a provider down, a
+dead endpoint), instead of being retried for a minute on every call.
 Providers are registered by name (built-in ones in ``llm_providers``), so
 swapping one is a config change.
 """
@@ -50,6 +52,12 @@ class Prompt:
 class Message:
     role: Literal["user", "assistant"]
     content: str
+
+
+@dataclass(frozen=True)
+class Answer[T: BaseModel]:
+    output: T
+    model: str  # "provider:model" that answered
 
 
 @dataclass
@@ -108,6 +116,8 @@ class LLMUnavailable(LLMError):
         self.lasting = lasting
 
 
+MAX_STRIKES = 3  # calls in a row a model may fail before the role stops trying it for the session
+
 _SCHEMA_INSTRUCTION = "\n\nReply with only a JSON object that matches this JSON Schema:\n{schema}"
 _RETRY_MESSAGE = (
     "That reply did not match the required schema:\n{error}\n"
@@ -121,6 +131,7 @@ class LLM:
         self.settings = settings
         self._providers: dict[str, Provider] = dict(providers or {})
         self._unavailable: dict[tuple[str, str], str] = {}  # models that failed this session, and why
+        self._strikes: dict[tuple[str, str], int] = {}  # each model's failed calls in a row
 
     def resolve(self, role: Role) -> list[tuple[str, str]]:
         """The (provider, model) pairs configured for a role, in fallback order."""
@@ -142,6 +153,10 @@ class LLM:
             self._providers[name] = factory(self.settings)
         return self._providers[name]
 
+    def models(self, role: Role) -> list[str]:
+        """The role's models as "provider:model" strings, in fallback order."""
+        return [f"{provider}:{model}" for provider, model in self.resolve(role)]
+
     def structured[T: BaseModel](
         self, role: Role, prompt: Prompt, output: type[T], *, max_attempts: int = 2
     ) -> T:
@@ -151,6 +166,12 @@ class LLM:
         ``max_attempts`` calls per model. An unavailable model hands over to the
         role's next one.
         """
+        return self.answer(role, prompt, output, max_attempts=max_attempts).output
+
+    def answer[T: BaseModel](
+        self, role: Role, prompt: Prompt, output: type[T], *, max_attempts: int = 2
+    ) -> Answer[T]:
+        """Like ``structured``, but also says which model answered, for callers that keep replies."""
         chain = self.resolve(role)
         schema = output.model_json_schema()
         system = prompt.system + _SCHEMA_INSTRUCTION.format(schema=json.dumps(schema))
@@ -164,14 +185,20 @@ class LLM:
                     event.detail.setdefault("unavailable", []).append(f"{provider_name}:{model}: earlier in this session")
                     continue
                 agent.update(provider=provider_name, model=model)
+                key = (provider_name, model)
                 try:
-                    return self._call(
+                    reply = self._call(
                         self._provider(provider_name), model, system, prompt, output, schema,
                         max_attempts, event.detail, usage,
                     )
+                    self._strikes.pop(key, None)
+                    return Answer(reply, f"{provider_name}:{model}")
                 except LLMUnavailable as exc:
+                    self._strikes[key] = strikes = self._strikes.get(key, 0) + 1
                     if exc.lasting:
-                        self._unavailable[(provider_name, model)] = str(exc)
+                        self._unavailable[key] = str(exc)
+                    elif strikes >= MAX_STRIKES:
+                        self._unavailable[key] = f"failed {strikes} calls in a row, the last: {exc}"
                     event.detail.setdefault("unavailable", []).append(f"{provider_name}:{model}: {exc}")
             reasons = "; ".join(event.detail["unavailable"])
             raise LLMUnavailable(f"No model for the {role} role is available ({reasons}).")

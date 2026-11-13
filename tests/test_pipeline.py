@@ -41,6 +41,7 @@ def test_run_passes_every_stage_and_writes_an_empty_report(settings, services):
     assert report["experiment_plan"]["baselines"] == []
     markdown = (result.report_dir / "report.md").read_text(encoding="utf-8")
     assert "## Novel Evidence Report" in markdown and "## Experiment Plan" in markdown
+    assert "## Knowledge graph" in markdown and report["knowledge_graph"]["papers_in_corpus"] == 0
 
 
 def test_brief_uses_the_question(settings, services):

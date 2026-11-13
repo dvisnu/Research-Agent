@@ -1,6 +1,6 @@
-"""Shared HTTP layer for the literature APIs: retry with backoff, per-host pacing, tracing.
-
-Responses are not cached.
+"""Shared HTTP layer for the literature APIs: retry with backoff, per-host pacing, tracing,
+and, for the search APIs, kept responses (``clients.cache``), so a rerun sees what its
+run saw. A kept response is traced like a request, marked ``cached``.
 """
 
 import threading
@@ -14,6 +14,7 @@ import httpx
 from filelock import FileLock
 from tenacity import Retrying, retry_if_exception, stop_after_attempt, wait_exponential_jitter
 
+from research_agent.clients.cache import ResponseCache
 from research_agent.storage import utc_now
 from research_agent.trace import child_event
 
@@ -98,6 +99,13 @@ class FilePacer:
                 self.path.write_text(repr(time.time()), encoding="utf-8")
 
 
+def _public_url(url: httpx.URL) -> str:
+    """The URL without credentials, as a cache key and record."""
+    for name in _PRIVATE_PARAMS:
+        url = url.copy_remove_param(name)
+    return str(url)
+
+
 class ApiClient:
     """One literature API: its host, its pacing, and its name in the trace."""
 
@@ -116,8 +124,10 @@ class ApiClient:
         transport: httpx.BaseTransport | None = None,
         sleep: Callable[[float], None] = time.sleep,
         pacer: Pacer | None = None,
+        cache: ResponseCache | None = None,
     ) -> None:
         self.service = service
+        self._cache = cache
         self._http = httpx.Client(
             base_url=base_url,
             headers={"User-Agent": USER_AGENT, **(headers or {})},
@@ -156,6 +166,15 @@ class ApiClient:
         public_params = {k: v for k, v in (params or {}).items() if k not in _PRIVATE_PARAMS}
         with child_event("api_call", agent={"kind": "api", "name": self.service}) as event:
             event.detail.update(method=method, path=path, params=public_params)
+            key = url = None
+            if self._cache is not None:
+                request = self._http.build_request(method, path, params=params, json=json)
+                url = _public_url(request.url)
+                key = ResponseCache.key(method, url, request.content)
+                kept = self._cache.get(key)
+                if kept is not None and (kept.status == 200 or allow_404):
+                    event.detail.update(cached=True, fetched_at=kept.fetched_at, status=kept.status)
+                    return None if kept.status == 404 else kept.response(request)
             retrying = Retrying(
                 stop=stop_after_attempt(self._max_attempts),
                 wait=self._wait,
@@ -179,6 +198,8 @@ class ApiClient:
                     sends[-1]["status"] = event.detail["status"] = response.status_code
                     if response.status_code in RETRY_STATUSES:
                         raise RetryableStatus(response)
+            if key is not None and (response.status_code == 200 or (allow_404 and response.status_code == 404)):
+                self._cache.put(key, self.service, method, url, response)
             if allow_404 and response.status_code == 404:
                 return None
             response.raise_for_status()

@@ -3,7 +3,7 @@ from pydantic import BaseModel, ValidationError
 
 from research_agent import llm
 from research_agent.config import Settings
-from research_agent.llm import LLM, Completion, LLMConfigError, LLMOutputError, LLMUnavailable, Prompt, Role
+from research_agent.llm import LLM, Completion, LLMConfigError, LLMOutputError, LLMUnavailable, MAX_STRIKES, Prompt, Role
 
 
 class Brief(BaseModel):
@@ -140,6 +140,22 @@ def test_a_passing_outage_moves_only_that_call_to_the_next_model(settings):
     model.structured(Role.EXTRACTION, PROMPT, Brief)
     model.structured(Role.EXTRACTION, PROMPT, Brief)
     assert provider.calls == ["first", "second", "first", "second"]
+
+
+def test_a_model_failing_call_after_call_is_dropped_for_the_session(settings):
+    provider = QuotaProvider(exhausted={"first"}, lasting=False)
+    model = LLM(settings.model_copy(update={"llm_extraction": "q:first,q:second"}), providers={"q": provider})
+    for _ in range(MAX_STRIKES + 2):
+        model.structured(Role.EXTRACTION, PROMPT, Brief)
+    assert provider.calls == ["first", "second"] * MAX_STRIKES + ["second", "second"]
+
+    # A success in between starts the count again.
+    flaky = QuotaProvider(exhausted=set(), lasting=False)
+    model = LLM(settings.model_copy(update={"llm_extraction": "q:first,q:second"}), providers={"q": flaky})
+    for down in (True, True, False, True, True):
+        flaky.exhausted = {"first"} if down else set()
+        model.structured(Role.EXTRACTION, PROMPT, Brief)
+    assert flaky.calls.count("first") == 5
 
 
 def test_an_unavailable_model_hands_over_to_the_next_for_the_session(settings, recorder):

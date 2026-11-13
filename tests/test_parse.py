@@ -1,6 +1,7 @@
 import pymupdf
 import pytest
 
+from research_agent.graph.extraction import load_sections
 from research_agent.literature.parse import ParseError, parse_arxiv_html, parse_pdf
 from research_agent.literature.sentences import split_sentences, split_spans
 from research_agent.literature.texts import abstract_text, store_text
@@ -129,6 +130,32 @@ def test_stored_sentences_have_addresses_and_exact_spans(db):
     paper = db.query("SELECT text_source, text_version, parser FROM papers")[0]
     assert tuple(paper) == ("arxiv_html", "v3", "test")
 
-    # Storing a new parse replaces the old one.
+    # The same parse again is not stored twice.
+    store_text(db, paper_id, parse_arxiv_html(HTML), source="arxiv_html", parser="test")
+    assert db.query("SELECT COUNT(*) FROM sentences")[0][0] == 7
+    assert db.query("SELECT COUNT(*) FROM paper_texts")[0][0] == 1
+
+
+def test_a_new_parse_is_a_new_text_and_the_old_one_keeps_its_sentences_and_evidence(db):
+    paper_id = PaperStore(db).upsert(PaperRecord(source="arxiv", title="Routing with Experts", arxiv_id="2401.00001"))
+    store_text(db, paper_id, abstract_text("t", "We route tokens. It works."), source="abstract", parser="abstract")
+    db.execute("INSERT INTO evidence (owner_kind, owner_id, sentence_id, quote) VALUES ('node', 'n1', ?, 'We route tokens')",
+               (f"{paper_id}:s0:0",))
+
+    count = store_text(db, paper_id, parse_arxiv_html(HTML), source="arxiv_html", parser="test")
+
+    # The new text's sections are numbered on from the abstract; the abstract is retired, not deleted.
+    sections = db.query("SELECT idx, text_no, retired_by FROM sections WHERE paper_id = ? ORDER BY idx", (paper_id,))
+    assert [tuple(s) for s in sections] == [(0, 1, 2), (1, 2, None), (2, 2, None), (3, 2, None)]
+    assert [s.idx for s in load_sections(db, paper_id)] == [1, 2, 3]
+    assert sum(len(s.lines) for s in load_sections(db, paper_id)) == count == 7
+    assert db.query("SELECT text FROM sentences WHERE sentence_id = ?", (f"{paper_id}:s0:0",))[0]["text"] == "We route tokens."
+    assert db.query("SELECT COUNT(*) FROM evidence WHERE owner_id = 'n1'")[0][0] == 1
+    texts = db.query("SELECT text_no, source, version FROM paper_texts WHERE paper_id = ? ORDER BY text_no", (paper_id,))
+    assert [tuple(t) for t in texts] == [(1, "abstract", None), (2, "arxiv_html", "v3")]
+    assert db.query("SELECT text_source FROM papers")[0]["text_source"] == "arxiv_html"
+
+    # A third, different parse retires the second in turn.
     store_text(db, paper_id, abstract_text("t", "Only an abstract now."), source="abstract", parser="abstract")
-    assert db.query("SELECT COUNT(*) FROM sentences")[0][0] == 1
+    assert [s.idx for s in load_sections(db, paper_id)] == [4]
+    assert db.query("SELECT COUNT(*) FROM sentences")[0][0] == 2 + 7 + 1
