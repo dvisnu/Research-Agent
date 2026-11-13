@@ -1,10 +1,12 @@
 # Research Agent — Phase Plan (rough)
 
-Draft v2 · 2026-10-07 (v1: 2026-10-02)
+v3 · 2026-11-13 (v2: 2026-10-07, v1: 2026-10-02)
 
 This replaces the phase plan (Section 5) in `architecture-overview-and-project-plan.docx`. The rest of that document still applies: the components, the two outputs, the 5-level novelty scale, the three provenance types, and the evaluation metrics.
 
 This is a high-level plan. Details for each phase get decided when we reach it.
+
+**Where things stand (2026-11-13):** Phases 0-6 are done, so the agent works end to end, from the CLI and from the local web UI. What is left is fine-tuning (*Remaining work*, after Phase 6), then the Phase 7 evaluation.
 
 ## Scope decisions
 
@@ -21,7 +23,7 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 | Embeddings | `gemini-embedding-2` on Google's free tier (decided 2026-10-09): 100 requests/min, 30k tokens/min, 1,000 requests/day, and every text in a batch counts as one request, so only findings are embedded, each once. No local embedding or NLI model in Phase 2: the extraction model labels claim pairs, which suits scientific claims and their conditions better. SPECTER2 stays for ranking papers. |
 | Literature sources | arXiv and OpenAlex are the base sources. Semantic Scholar is added when `RA_S2_API_KEY` is set (key requested 2026-10-07); without a key most of its requests are rejected with HTTP 429. |
 | PDF parsing | PyMuPDF only, no GROBID. Most CS/ML papers have arXiv HTML, so PDFs are the fallback. |
-| LLMs during development | Free tiers (decided 2026-10-09): extraction = Gemini 3.5 Flash-Lite, falling back to Gemini 3.1 Flash-Lite and Gemma 4 31B (Google AI Studio); reasoning = Nemotron 3 Ultra (OpenRouter, free); verifier = gpt-oss-120b (Groq). Stronger models replace them once the whole agent works (`END_TODO.md`). |
+| LLMs during development | Free tiers (decided 2026-10-09): extraction = Gemini 3.5 Flash-Lite, falling back to Gemini 3.1 Flash-Lite and Gemma 4 31B (Google AI Studio); reasoning = Nemotron 3 Ultra (OpenRouter, free); verifier = gpt-oss-120b (Groq). Stronger models may replace them before Phase 7 (*Remaining work* 1). |
 | Corpus size during development | 10 papers read in full + 30 by abstract (decided 2026-10-09), to fit the free LLM limits. On the dev topics, the top 40 hold 86% of the key papers against 88% for the top 100. |
 
 ## Principles
@@ -37,17 +39,17 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 ## Overview
 
-| Phase | Builds | Milestone |
-| --- | --- | --- |
-| 0. Foundations | Project skeleton, clients, storage, run trace | A stub pipeline runs end to end and writes a trace |
-| 1. Input + literature acquisition | C1, C2 | A ranked, parsed corpus for any CS/ML question |
-| 2. Research knowledge graph | C3 | An evidence-backed graph for any corpus |
-| 3. Related work + gap detection | C4 stages 1–2 | Ranked gaps, each backed by quoted evidence |
-| 4. Idea generation + novelty assessment | C4 stage 3 | A Novel Evidence Report with a novelty level 1–5 |
-| 5. Provenance-aware experiment plan | C5 | A verified plan where every element traces to a paper section |
-| 6. Hardening + integration | Whole system | Stable, resumable, cost-measured runs |
-| 7. Evaluation | Evaluation | Metrics vs baselines, with an evaluation report |
-| 8. Extensions (optional) | Improvements | Chosen "later" items, each measured |
+| Phase | Builds | Milestone | Status |
+| --- | --- | --- | --- |
+| 0. Foundations | Project skeleton, clients, storage, run trace | A stub pipeline runs end to end and writes a trace | done 2026-10-07 |
+| 1. Input + literature acquisition | C1, C2 | A ranked, parsed corpus for any CS/ML question | done 2026-10-09 |
+| 2. Research knowledge graph | C3 | An evidence-backed graph for any corpus | done 2026-10-10 |
+| 3. Related work + gap detection | C4 stages 1–2 | Ranked gaps, each backed by quoted evidence | done 2026-10-10 |
+| 4. Idea generation + novelty assessment | C4 stage 3 | A Novel Evidence Report with a novelty level 1–5 | done 2026-10-11 |
+| 5. Provenance-aware experiment plan | C5 | A verified plan where every element traces to a paper section | done 2026-10-13 |
+| 6. Hardening + integration | Whole system | Stable, resumable, cost-measured runs | done 2026-10-14 |
+| 7. Evaluation | Evaluation | Metrics vs baselines, with an evaluation report | next, after fine-tuning |
+| 8. Extensions (optional) | Improvements | Chosen "later" items, each measured | not started |
 
 ```
 0 ──► 1 ──► 2 ──► 3 ──► 4 ──► 5 ──► 6 ──► 7 ──► 8
@@ -75,7 +77,7 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 ## Phase 1 — Research input + literature acquisition (C1, C2)
 
-**Status:** done (2026-10-09). The LLM research brief (the question's own words plus 2-3 angles in the field's vocabulary) and the LLM relevance check are in, on the free development models. Checked end to end on one dev topic: 545 candidates, 3 of 4 key papers found, all 10 full-read papers parsed, about 7 minutes. The full 18-topic key-paper check, and tuning retrieval with it, are deferred to the end (`END_TODO.md`); they affect retrieval quality, not the pipeline. Before the LLM brief, the check gave 57/64 key papers found (89%), 48/64 in the top 20 (75%) and 56/64 in the top 100 (88%).
+**Status:** done (2026-10-09). The LLM research brief (the question's own words plus 2-3 angles in the field's vocabulary) and the LLM relevance check are in, on the free development models. Checked end to end on one dev topic: 545 candidates, 3 of 4 key papers found, all 10 full-read papers parsed, about 7 minutes. The full 18-topic key-paper check, and tuning retrieval with it, are deferred to the end (*Remaining work* 3); they affect retrieval quality, not the pipeline. Before the LLM brief, the check gave 57/64 key papers found (89%), 48/64 in the top 20 (75%) and 56/64 in the top 100 (88%).
 
 **Goal:** For any CS/ML question, find the right papers and turn them into addressable text.
 
@@ -91,7 +93,7 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 ## Phase 2 — Research knowledge graph (C3)
 
-**Status:** done (2026-10-10). After the check below, two fixes: an identical re-parse of a paper no longer deletes evidence, and extraction (prompt v2, plus a filter in code) skips vague names such as "several benchmarks" or "large language models". Two smaller issues are left for the end (`END_TODO.md`). Checked on 6 dev topics (2026-10-10): RAG with conflicting documents, PEFT, scientific RAG, long context, offline RL, vision under distribution shift. Quote check 96.7-98.7% per topic, 97.97% over 5,310 quotes; failures are mostly LaTeX-heavy sentences the model can't copy exactly, small rewordings, and abstract sentences replaced when a later run parsed the paper's full text. 40 hand-checked items all quote their sentences faithfully; 5 are weak (tasks or entities that are too generic or taken from related work). Per topic: 23-29 extraction calls in 3-4.5 min, then 19-21 calls and 2-4 min for the graph, about 130-270 embedding requests, so the 1,000 a day cover about 5 new topics. 0-3 contradictions per topic.
+**Status:** done (2026-10-10). After the check below, two fixes: an identical re-parse of a paper no longer deletes evidence, and extraction (prompt v2, plus a filter in code) skips vague names such as "several benchmarks" or "large language models". Two smaller issues are left for the end (*Remaining work* 4). Checked on 6 dev topics (2026-10-10): RAG with conflicting documents, PEFT, scientific RAG, long context, offline RL, vision under distribution shift. Quote check 96.7-98.7% per topic, 97.97% over 5,310 quotes; failures are mostly LaTeX-heavy sentences the model can't copy exactly, small rewordings, and abstract sentences replaced when a later run parsed the paper's full text. 40 hand-checked items all quote their sentences faithfully; 5 are weak (tasks or entities that are too generic or taken from related work). Per topic: 23-29 extraction calls in 3-4.5 min, then 19-21 calls and 2-4 min for the graph, about 130-270 embedding requests, so the 1,000 a day cover about 5 new topics. 0-3 contradictions per topic.
 
 **Goal:** Turn the corpus into a graph in which every fact points to the sentence it came from.
 
@@ -113,7 +115,7 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 ## Phase 3 — Related work + gap detection (C4, stages 1–2)
 
-**Status:** done (2026-10-10). Checked on 7 dev topics: the 6 Phase 2 runs (Phase 3 run on their graphs) and a new end-to-end `agent run` on LLM-as-judge bias. Final check, with Gemini Embedding 2 for gap relevance and merging: every topic has 5 ranked gaps, all 47 pieces of gap evidence resolve to real sentences containing their quotes, and no embedding vector is missing. Most gaps are stated limitations or future work; vision has two conflict gaps (scale vs data diversity; whether synthetic-shift robustness transfers to natural shifts) and RAG one structural gap (CRAG never reported on 2WikiMultihopQA). The co-mention check dropped 20 of the 35 empty cells the reasoning model picked, including Longformer on Long Range Arena, which that benchmark's paper does test. Switching gap relevance from SPECTER2 to Gemini replaced offline RL's generic 2019-2020 problem statements with specific open issues. Cost per run: 2 reasoning calls (1.5-10 min with free Nemotron, which fell back to Gemini 3.1 Flash-Lite twice when overloaded) and 30-60 embedding requests, kept. Known weak spots, left for the end (`END_TODO.md`): stated gaps can still be problems newer corpus papers have worked on, and near-duplicate gaps can both appear.
+**Status:** done (2026-10-10). Checked on 7 dev topics: the 6 Phase 2 runs (Phase 3 run on their graphs) and a new end-to-end `agent run` on LLM-as-judge bias. Final check, with Gemini Embedding 2 for gap relevance and merging: every topic has 5 ranked gaps, all 47 pieces of gap evidence resolve to real sentences containing their quotes, and no embedding vector is missing. Most gaps are stated limitations or future work; vision has two conflict gaps (scale vs data diversity; whether synthetic-shift robustness transfers to natural shifts) and RAG one structural gap (CRAG never reported on 2WikiMultihopQA). The co-mention check dropped 20 of the 35 empty cells the reasoning model picked, including Longformer on Long Range Arena, which that benchmark's paper does test. Switching gap relevance from SPECTER2 to Gemini replaced offline RL's generic 2019-2020 problem statements with specific open issues. Cost per run: 2 reasoning calls (1.5-10 min with free Nemotron, which fell back to Gemini 3.1 Flash-Lite twice when overloaded) and 30-60 embedding requests, kept. Known weak spots, left for the end (*Remaining work* 5): stated gaps can still be problems newer corpus papers have worked on, and near-duplicate gaps can both appear.
 
 **Goal:** Map what has and hasn't been studied, and produce gaps backed by evidence.
 
@@ -130,7 +132,7 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 ## Phase 4 — Idea generation + novelty assessment (C4, stage 3) — contribution 1
 
-**Status:** done (2026-10-11). Checked on the 7 dev topics (the Phase 3 runs) with the free development models. Every topic gets a Novel Evidence Report, and all 1,369 evidence items (470 comparisons, 47 assessed ideas) resolve to real sentences containing their quotes. Duplicate test, 21 papers from 2025 on outside the corpora: restated in full, all 21 caught at level 1, each by its own source; restated briefly at a high level, all 21 caught by the source (20 at level 1, 1 at level 2), which the filter ranked in its top 9 and the rerank put first in 20. Filter: SPECTER2, not Gemini Embedding 2 (decided 2026-10-11). Both kept every source among the 30, but on the 4 ideas where SPECTER2 didn't rank the source first, its median rank was 3, against 15 for Gemini and 14 for a mix of the two; Gemini would also cost about 1,200 embedding requests per run. Final levels of the 3 ideas per topic: RAG 4/3/2, PEFT 4/4/2, scientific RAG 4/4/2 (the user's own idea 2), long context 3 (inconclusive)/2/2, offline RL 4/3 (inconclusive)/2, vision 4/4/2, LLM-as-judge 4/4/4; no level 5. 15 of the 21 first ideas came out at level 1-2, mostly against 2025-2026 papers, and went round the retry loop; 7 lineages stay at level 2 after both revisions (on RAG, three versions of hallucination-aware decoding each matched an existing paper). The "possibly addressed" cap fired once (long context: a 2026 paper solves a gap whose evidence is from 2023), and 3 of 470 comparisons judged a paper to solve the gap. A first version rejected revisions whose changed facet scored 0.94-0.97 against the one it replaced, though they named a genuinely different technique; the threshold for repeats within an idea is now 0.98. Cost per run: 2-3 reasoning calls, 50-112 Gemini 3.5 Flash-Lite calls (500 a day per key, so about 5-7 runs), 2-11 embedding requests, 16-30 min with the retry loop. Known weak spots, left for the end (`END_TODO.md` 8-10): the comparison model can mislabel a facet either way and the quote check doesn't catch it, an idea can answer its gap only in part, and the thresholds come from 7 topics.
+**Status:** done (2026-10-11). Checked on the 7 dev topics (the Phase 3 runs) with the free development models. Every topic gets a Novel Evidence Report, and all 1,369 evidence items (470 comparisons, 47 assessed ideas) resolve to real sentences containing their quotes. Duplicate test, 21 papers from 2025 on outside the corpora: restated in full, all 21 caught at level 1, each by its own source; restated briefly at a high level, all 21 caught by the source (20 at level 1, 1 at level 2), which the filter ranked in its top 9 and the rerank put first in 20. Filter: SPECTER2, not Gemini Embedding 2 (decided 2026-10-11). Both kept every source among the 30, but on the 4 ideas where SPECTER2 didn't rank the source first, its median rank was 3, against 15 for Gemini and 14 for a mix of the two; Gemini would also cost about 1,200 embedding requests per run. Final levels of the 3 ideas per topic: RAG 4/3/2, PEFT 4/4/2, scientific RAG 4/4/2 (the user's own idea 2), long context 3 (inconclusive)/2/2, offline RL 4/3 (inconclusive)/2, vision 4/4/2, LLM-as-judge 4/4/4; no level 5. 15 of the 21 first ideas came out at level 1-2, mostly against 2025-2026 papers, and went round the retry loop; 7 lineages stay at level 2 after both revisions (on RAG, three versions of hallucination-aware decoding each matched an existing paper). The "possibly addressed" cap fired once (long context: a 2026 paper solves a gap whose evidence is from 2023), and 3 of 470 comparisons judged a paper to solve the gap. A first version rejected revisions whose changed facet scored 0.94-0.97 against the one it replaced, though they named a genuinely different technique; the threshold for repeats within an idea is now 0.98. Cost per run: 2-3 reasoning calls, 50-112 Gemini 3.5 Flash-Lite calls (500 a day per key, so about 5-7 runs), 2-11 embedding requests, 16-30 min with the retry loop. Known weak spots, left for the end (*Remaining work* 6): the comparison model can mislabel a facet either way and the quote check doesn't catch it, an idea can answer its gap only in part, and the thresholds come from 7 topics.
 
 **Goal:** Propose ideas and rate how novel they are, honestly.
 
@@ -146,7 +148,7 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 ## Phase 5 — Provenance-aware experiment plan (C5) — contribution 2
 
-**Status:** done (2026-10-13). Checked on the 7 dev topics (the Phase 4 runs) with the free development models: each run plans its best idea and gets both linked outputs, the report's Experiment Plan and `provenance.json`. Provenance Coverage: RAG 30/45 (67%), PEFT 24/41 (59%), scientific RAG 28/47 (60%), long context 22/34 (65%, plus 1 element removed as contradicted), offline RL 22/31 (71%), vision 18/37 (49%), LLM-as-judge 19/31 (61%); 163 of 266 elements overall (61%). Every element has its derivation and decision records and every cited one its sources: all 813 evidence items resolve to real sentences containing their quotes, and the PROV walk reaches a section and a paper from 259 of the 266 elements (the other 7 cite nothing and are flagged "no source"). Two verifier fixes came from the dev runs. The first prompt judged the plan's own design choices (51% on the first RAG run), so it now judges only what an element says the literature states, and the writer's basis states only what its facts say. The writer names facts by number in its bases ("F34 ..."), and the verifier, not told what a number named, marked such claims unsupported for that alone; it now sees each cited fact with its papers and why the plan uses them (vision went from 35% to 49%). Most remaining "not supported" verdicts are the free writer claiming more than its facts say ("F11 provides the WordNet hierarchy"). Each plan went through 2 critiques of 6-17 points; the targeted searches added 6-9 papers a plan; and all 14 critiques judged that the plan answers its gap only "partly". Cost per plan: 2 reasoning calls, 11-16 Gemini 3.5 Flash-Lite calls, 8-16 verifier calls (35-60k Groq tokens, so a free key covers 4-6 plans a day), a few Semantic Scholar requests and full texts, 10-20 min. Known weak spots, left for the end (`END_TODO.md` 9, 11, 12): for a dataset, baseline or metric "supported" often only means the sources name it; the free verifier sees shortened facts and sentences; the gap is only partly answered and Phase 5 can only report it. A rerun can also rewrite a plan when a live search returns different papers (Phase 6).
+**Status:** done (2026-10-13). Checked on the 7 dev topics (the Phase 4 runs) with the free development models: each run plans its best idea and gets both linked outputs, the report's Experiment Plan and `provenance.json`. Provenance Coverage: RAG 30/45 (67%), PEFT 24/41 (59%), scientific RAG 28/47 (60%), long context 22/34 (65%, plus 1 element removed as contradicted), offline RL 22/31 (71%), vision 18/37 (49%), LLM-as-judge 19/31 (61%); 163 of 266 elements overall (61%). Every element has its derivation and decision records and every cited one its sources: all 813 evidence items resolve to real sentences containing their quotes, and the PROV walk reaches a section and a paper from 259 of the 266 elements (the other 7 cite nothing and are flagged "no source"). Two verifier fixes came from the dev runs. The first prompt judged the plan's own design choices (51% on the first RAG run), so it now judges only what an element says the literature states, and the writer's basis states only what its facts say. The writer names facts by number in its bases ("F34 ..."), and the verifier, not told what a number named, marked such claims unsupported for that alone; it now sees each cited fact with its papers and why the plan uses them (vision went from 35% to 49%). Most remaining "not supported" verdicts are the free writer claiming more than its facts say ("F11 provides the WordNet hierarchy"). Each plan went through 2 critiques of 6-17 points; the targeted searches added 6-9 papers a plan; and all 14 critiques judged that the plan answers its gap only "partly". Cost per plan: 2 reasoning calls, 11-16 Gemini 3.5 Flash-Lite calls, 8-16 verifier calls (35-60k Groq tokens, so a free key covers 4-6 plans a day), a few Semantic Scholar requests and full texts, 10-20 min. Known weak spots, left for the end (*Remaining work* 7): for a dataset, baseline or metric "supported" often only means the sources name it; the free verifier sees shortened facts and sentences; the gap is only partly answered and Phase 5 can only report it. A rerun can also rewrite a plan when a live search returns different papers (Phase 6).
 
 **Goal:** An experiment plan in which every element is traceable to the literature.
 
@@ -165,6 +167,14 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 ## Phase 6 — Hardening + integration
 
+**Status:** done (2026-10-14). Checked live on two new topics, as the user chose; the 7 dev topics run again with the final models (*Remaining work* 1), since each would cost about a full run on the free tiers. Both ran end to end with no manual step but a resume, every report part present:
+- *moe-load-balancing* (a question): 137 min in stages. The process was killed once in the novelty search (the machine ran low on memory) and `resume` finished the run. 136 Gemini Flash-Lite calls (585k tokens in, 158k out), 8 Nemotron, 10 verifier calls (41k Groq tokens), 168 Semantic Scholar requests. Provenance Coverage 17/36 (47%); all 1,602 evidence items resolve to sentences containing their quotes; all 36 cited plan elements trace to a section and a paper. Best idea at level 4.
+- *draft-free-speculative-decoding* (an idea): 77 min. 166 Gemini Flash-Lite calls (675k in, 208k out), 8 Nemotron, 12 verifier calls (47k Groq tokens), 168 Semantic Scholar requests. Coverage 16/36 (44%); all 1,752 evidence items resolve; 34 of 34 cited elements trace (2 cite nothing, flagged "no source"). Ideas at levels 4, 3 and 2.
+
+Time goes mostly to extraction and the graph (68 min on the bigger topic, at Gemini's 15 requests a minute), the novelty loop (about 30 min) and the gaps (8-13 min). A free Google key (500 calls a day per model) covers about 3 such runs a day, a Groq key 4-6 plans, OpenRouter's 50 free calls about 6 runs. A rerun reused the brief, the kept searches, 35-47 of 49 extractions and most embeddings and claim-pair labels, so its literature and graph stages took minutes; its ideas and plan can differ from the first run's (accepted, see *Reruns* below). Coverage on these two (44-47%) is below the dev topics' 61%: mostly the free writer claiming more than its facts say (*Remaining work* 7).
+
+Two more runs of the finished agent followed the same day, on model merging (killed once for low memory and resumed) and time-series forecasting: both pass `scripts/regression.py`, with coverage 67% and 55%. Reading the four runs' reports found the weak spots listed in *Remaining work* 5-6.
+
 **Goal:** From a working prototype to a dependable tool.
 
 - **Robustness:**
@@ -179,11 +189,26 @@ This is a high-level plan. Details for each phase get decided when we reach it.
 
 **Done when:** all dev topics run without manual intervention, and cost and time per run are documented.
 
-**Status:** done (2026-10-14). Checked live on two new topics, as the user chose; the 7 dev topics run again with the final models (`END_TODO.md` 1), since each would cost about a full run on the free tiers. Both ran end to end with no manual step but a resume, every report part present:
-- *moe-load-balancing* (a question): 137 min in stages. The process was killed once in the novelty search (the machine ran low on memory) and `resume` finished the run. 136 Gemini Flash-Lite calls (585k tokens in, 158k out), 8 Nemotron, 10 verifier calls (41k Groq tokens), 168 Semantic Scholar requests. Provenance Coverage 17/36 (47%); all 1,602 evidence items resolve to sentences containing their quotes; all 36 cited plan elements trace to a section and a paper. Best idea at level 4.
-- *draft-free-speculative-decoding* (an idea): 77 min. 166 Gemini Flash-Lite calls (675k in, 208k out), 8 Nemotron, 12 verifier calls (47k Groq tokens), 168 Semantic Scholar requests. Coverage 16/36 (44%); all 1,752 evidence items resolve; 34 of 34 cited elements trace (2 cite nothing, flagged "no source"). Ideas at levels 4, 3 and 2.
+## Remaining work: fine-tuning
 
-Time goes mostly to extraction and the graph (68 min on the bigger topic, at Gemini's 15 requests a minute), the novelty loop (about 30 min) and the gaps (8-13 min). A free Google key (500 calls a day per model) covers about 3 such runs a day, a Groq key 4-6 plans, OpenRouter's 50 free calls about 6 runs. A rerun reused the brief, the kept searches, 35-47 of 49 extractions and most embeddings and claim-pair labels, so its literature and graph stages took minutes; its ideas and plan can differ from the first run's (accepted, see *Reruns* above). Coverage on these two (44-47%) is below the dev topics' 61%: mostly the free writer claiming more than its facts say (`END_TODO.md` 12).
+The agent works end to end; what is left changes the quality of its output, not the pipeline. It comes before Phase 7, so the evaluation measures the tuned agent. Other sections refer to its items by number.
+
+1. **Final models.** Every check so far ran on free tiers (see `.env.example`). Choose the final model for each role, keeping the verifier in a different model family from reasoning, and the cost budget per run, then run the 7 dev topics again with them (`scripts/regression.py`). Still open: run Phase 7 on the free models, which makes them the final setup, or swap first.
+2. **Corpus size.** `RA_FULL_READ` / `RA_ABSTRACT_ONLY` are 10 + 30 to fit the free LLM limits. Go back to 20 + 80, or whatever the re-run checks support.
+3. **Retrieval** (Phase 1). Run the full key-paper check (`scripts/key_paper_recall.py --full-text` on all 18 dev topics, about 2 hours) and tune with it:
+   - the ranking weights (`CITATION_WEIGHT`, `LINK_WEIGHT` in `literature/stages.py`), chosen before the relevance check existed and not yet confirmed;
+   - giving full-read places to papers the relevance check labels core first (on one topic, 8 of the 10 went to broad surveys labelled related); the stored labels let this be measured without new LLM calls;
+   - the brief prompt, which tends to paraphrase the problem instead of using the literature's name for it ("conflicting evidence" for "knowledge conflicts");
+   - how strict the arXiv queries are (two ANDed phrases often return nothing).
+4. **Extraction** (Phase 2). Quotes of LaTeX-heavy sentences fail the quote check, since the model can't copy them exactly, and some extracted tasks and entities are too generic or taken from a paper's related work.
+5. **Gaps** (Phase 3). A stated gap can be a problem newer corpus papers have already worked on (2021's "merging more than two models"), a paper's own motivation can be read as a gap (WEMoE, Autoformer), and near-duplicate gaps can both appear.
+6. **Novelty check** (Phase 4).
+   - A paper stored with a title only (no abstract or text) can't be compared. The failed comparison caps the idea at level 3, inconclusive, which then outranks checked level-2 ideas, so Phase 5 can plan a likely duplicate (model merging: "Model Merging using Geometric Median of Task Vectors").
+   - Reading the 3 closest papers in full before a level of 3 or higher fails open: when no full text can be fetched (ACM 403, IEEE, no IDs) the abstract verdicts stand (time series: level 4 with none of the 3 read in full).
+   - The search can miss the closest work: the rerank dropped Kangaroo (draft-free speculative decoding), and forecast combination (FFORMA) wasn't found (time series).
+   - The comparison model can mislabel a facet either way and the quote check doesn't catch it, an idea can answer its gap only in part, and the thresholds come from 7 topics.
+7. **Experiment plan** (Phase 5). The free writer claims more than its facts say ("F11 provides the WordNet hierarchy"), the main reason Provenance Coverage stays at 44-71%. For a dataset, baseline or metric, "supported" often only means the sources name it; the free verifier sees shortened facts and sentences; and every critique so far judged that the plan answers its gap only partly, which Phase 5 can only report.
+8. **Phase 7 benchmark topics** are chosen after the final models are fixed: they must come from papers published after every model's training cutoff.
 
 ## Phase 7 — Evaluation (automated)
 
@@ -225,4 +250,4 @@ Each extension is added only if the Phase 7 numbers show room for it, and each i
 
 - ~~One idea per run, or the top 3 ranked by novelty level.~~ Settled 2026-10-10: 3 ideas checked and ranked; Phase 5 plans the best.
 - Optional CLI pause points (confirm the brief, pick the idea before planning).
-- Which models fill the three LLM roles in the final system, and the cost budget per run (development uses free tiers).
+- Which models fill the three LLM roles in the final system, and the cost budget per run (development uses free tiers; *Remaining work* 1).

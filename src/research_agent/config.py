@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     openalex_api_key: SecretStr | None = None
 
     # Corpus size per run: the top papers read in full, then the next ones read by abstract.
-    # Development sizes, chosen to fit the free LLM tiers; see END_TODO.md.
+    # Development sizes, chosen to fit the free LLM tiers; see "Remaining work" in docs/project/phase-plan.md.
     full_read: int = Field(10, ge=0)
     abstract_only: int = Field(30, ge=0)
 
